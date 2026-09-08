@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     }
     const { searchParams } = new URL(req.url);
     const q = (searchParams.get("q") || "").trim().slice(0, 64);
+    const categoryFilter = (searchParams.get("category") || "").trim();
 
     const supabase = getSupabaseServer();
 
@@ -31,12 +32,13 @@ export async function GET(req: NextRequest) {
     // Fetch checked-in guests (or accepted if no check_in columns)
     let rows: any[] = [];
     if (cols === FULL_COLS) {
-      const { data, error } = await supabase
+      let query = supabase
         .from("invitations")
         .select(cols)
         .eq("is_active", true)
-        .eq("check_in_status", "checked_in")
-        .order("check_in_time", { ascending: false });
+        .eq("check_in_status", "checked_in");
+      if (categoryFilter) query = query.eq("rsvp_category", categoryFilter);
+      const { data, error } = await query.order("check_in_time", { ascending: false });
       if (error) {
         console.error("all checked-in query error:", error);
         return NextResponse.json({ error: GENERIC }, { status: 500 });
@@ -44,12 +46,13 @@ export async function GET(req: NextRequest) {
       rows = data || [];
     } else {
       // Fallback: use rsvp_status = accepted as proxy
-      const { data, error } = await supabase
+      let query = supabase
         .from("invitations")
         .select(cols)
         .eq("is_active", true)
-        .eq("rsvp_status", "accepted")
-        .order("guest_name");
+        .eq("rsvp_status", "accepted");
+      if (categoryFilter) query = query.eq("rsvp_category", categoryFilter);
+      const { data, error } = await query.order("guest_name");
       if (error) {
         console.error("all checked-in fallback query error:", error);
         return NextResponse.json({ error: GENERIC }, { status: 500 });

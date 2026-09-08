@@ -10,7 +10,7 @@ import {
 
 const QrScanner = dynamic(() => import("@/components/checkin/QrScanner"), { ssr: false });
 
-type Screen = "loading" | "login" | "categories" | "desk";
+type Screen = "loading" | "login" | "categories" | "desk" | "allchecked";
 type DeskTab = "search" | "scan" | "checked";
 
 interface Guest {
@@ -204,10 +204,13 @@ export default function CheckInApp() {
     loadCounts();
   };
 
-  const loadCheckedList = useCallback(async (search?: string) => {
+  const loadCheckedList = useCallback(async (search?: string, cat?: string) => {
     setCheckedLoading(true);
     try {
-      const qs = search ? `?q=${encodeURIComponent(search)}` : "";
+      const params = new URLSearchParams();
+      if (search) params.set("q", search);
+      if (cat) params.set("category", cat);
+      const qs = params.toString() ? `?${params.toString()}` : "";
       const { res, data } = await api(`/api/check-in/all-checked-in${qs}`);
       if (res.status === 401) { expired(); return; }
       if (res.ok) {
@@ -452,10 +455,94 @@ export default function CheckInApp() {
             })}
           </div>
           {counts && (
-            <div className="mt-5 p-4 rounded-lg bg-white border border-[#0E281E]/10 text-center">
+            <button
+              onClick={() => {
+                setScreen("allchecked");
+                loadCheckedList();
+              }}
+              className="mt-5 p-4 rounded-lg bg-white border border-[#0E281E]/10 text-center w-full touch-manipulation active:scale-[0.99]"
+            >
               <p className="text-xs uppercase tracking-[0.2em] text-[#0E281E]/60">Total checked in</p>
               <p className="text-3xl font-serif mt-1">{counts.totalCheckedIn}</p>
-              <p className="text-xs text-[#0E281E]/50 mt-1">of {counts.totalRegistered} registered guests</p>
+              <p className="text-xs text-[#C5A059] mt-1 uppercase tracking-wider">View all guests ›</p>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- ALL CHECKED-IN LIST ----------
+  if (screen === "allchecked") {
+    return (
+      <div className="min-h-dvh bg-[#FBF9F4] text-[#0E281E] flex flex-col overflow-x-hidden">
+        {header}
+        <div className="flex-1 w-full max-w-md mx-auto px-5 py-4 pb-[env(safe-area-inset-bottom)]">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-[#0E281E]/60">All checked-in guests</p>
+              <p className="text-2xl font-serif mt-0.5">{checkedTotal}</p>
+            </div>
+            <button
+              onClick={() => { setScreen("categories"); loadCounts(); }}
+              className="h-10 px-4 rounded-md border border-[#0E281E]/20 text-xs uppercase tracking-[0.15em] text-[#0E281E]/70 touch-manipulation active:scale-[0.97]"
+            >
+              Back
+            </button>
+          </div>
+          <div className="flex gap-2 mb-4">
+            <input
+              value={checkedQuery}
+              onChange={(e) => setCheckedQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && loadCheckedList(checkedQuery)}
+              placeholder="Search by name, phone, or category"
+              className={inputCls}
+            />
+            <button
+              onClick={() => loadCheckedList(checkedQuery)}
+              disabled={checkedLoading}
+              className="shrink-0 h-14 px-5 rounded-md bg-[#0E281E] text-[#FBF9F4] text-sm uppercase tracking-[0.12em] font-medium border border-[#C5A059]/40 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
+            >
+              {checkedLoading ? "…" : "Go"}
+            </button>
+          </div>
+          <button
+            onClick={() => loadCheckedList(checkedQuery)}
+            className="w-full text-right text-xs text-[#C5A059] uppercase tracking-wider mb-3"
+          >
+            Refresh
+          </button>
+          {checkedList.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-[#0E281E]/40 text-sm">No guests checked in yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {checkedList.map((g) => (
+                <div
+                  key={g.id}
+                  className="p-4 rounded-lg bg-white border border-[#0E281E]/15"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-base font-medium truncate">{g.name}</p>
+                      <p className="text-xs uppercase tracking-[0.15em] text-[#C5A059] mt-0.5">
+                        {checkinCategoryLabel(g.category)}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+                      ✓ In
+                    </span>
+                  </div>
+                  <div className="mt-2 text-xs text-[#0E281E]/60 space-y-0.5">
+                    {g.contact && <p>{g.contact}</p>}
+                    {g.code && <p className="font-mono">{g.code}</p>}
+                    {g.checkInTime && (
+                      <p>Checked in at {formatTime(g.checkInTime)}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -510,7 +597,7 @@ export default function CheckInApp() {
                   setScanKey((k) => k + 1);
                 }
                 if (t === "checked") {
-                  loadCheckedList();
+                  loadCheckedList("", category || undefined);
                   loadCounts();
                 }
               }}
@@ -611,12 +698,12 @@ export default function CheckInApp() {
               <input
                 value={checkedQuery}
                 onChange={(e) => setCheckedQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && loadCheckedList(checkedQuery)}
+                onKeyDown={(e) => e.key === "Enter" && loadCheckedList(checkedQuery, category || undefined)}
                 placeholder="Search checked-in guests"
                 className={inputCls}
               />
               <button
-                onClick={() => loadCheckedList(checkedQuery)}
+                onClick={() => loadCheckedList(checkedQuery, category || undefined)}
                 disabled={checkedLoading}
                 className="shrink-0 h-14 px-5 rounded-md bg-[#0E281E] text-[#FBF9F4] text-sm uppercase tracking-[0.12em] font-medium border border-[#C5A059]/40 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
               >
@@ -628,7 +715,7 @@ export default function CheckInApp() {
                 {checkedTotal} guest{checkedTotal !== 1 ? "s" : ""} checked in
               </p>
               <button
-                onClick={() => loadCheckedList(checkedQuery)}
+                onClick={() => loadCheckedList(checkedQuery, category || undefined)}
                 className="text-xs text-[#C5A059] uppercase tracking-wider"
               >
                 Refresh
