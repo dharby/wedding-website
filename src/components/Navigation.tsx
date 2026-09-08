@@ -56,7 +56,7 @@ export default function Navigation() {
             <button
               key={l.name}
               onClick={() => nav(l.href)}
-              className="text-[0.6rem] uppercase tracking-[0.2em] font-sans text-ink-soft/70 hover:text-emerald transition-colors duration-300 relative group"
+              className="text-[0.6rem] uppercase tracking-[0.2em] font-sans text-ink-soft/70 dark:text-cream/80 hover:text-emerald dark:hover:text-gold transition-colors duration-300 relative group"
             >
               {l.name}
               <span className="absolute -bottom-1 left-0 w-0 h-px bg-gold group-hover:w-full transition-all duration-300" />
@@ -75,11 +75,11 @@ export default function Navigation() {
         }`}
       >
         <button onClick={() => setOpen(true)} className="p-1" aria-label="Open menu">
-          <svg className="w-5 h-5 text-emerald" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-5 h-5 text-emerald dark:text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5M3.75 15h16.5" />
           </svg>
         </button>
-        <span className="text-[0.9rem] font-script text-emerald">A&T</span>
+        <span className="text-[0.9rem] font-script text-emerald dark:text-gold">A&T</span>
         <div className="w-7" />
       </motion.div>
 
