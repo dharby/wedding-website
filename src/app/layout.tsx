@@ -65,12 +65,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             try {
-              var theme = localStorage.getItem('wedding-theme');
-              if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-              } else {
-                document.documentElement.classList.remove('dark');
-              }
+              // Always launch in light mode, ignoring any previously saved theme.
+              localStorage.removeItem('wedding-theme');
+              document.documentElement.classList.remove('dark');
             } catch(e) {}
           })();
         `}} />

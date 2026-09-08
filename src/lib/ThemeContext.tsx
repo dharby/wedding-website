@@ -12,22 +12,22 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  // The site always launches in light mode; the visitor can still
+  // toggle dark mode manually for the current session.
   const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("wedding-theme") as Theme | null;
-    if (saved) {
-      setTheme(saved);
-    } else {
-      setTheme("light");
-    }
+    setTheme("light");
+    try {
+      localStorage.removeItem("wedding-theme");
+    } catch {}
+    document.documentElement.classList.remove("dark");
   }, []);
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem("wedding-theme", theme);
       document.documentElement.classList.toggle("dark", theme === "dark");
     }
   }, [theme, mounted]);
