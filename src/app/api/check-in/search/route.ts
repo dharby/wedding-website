@@ -7,6 +7,17 @@ const GENERIC = "Something went wrong. Please try again.";
 const BASE_COLS = "id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token";
 const FULL_COLS = BASE_COLS + ", check_in_status, check_in_time";
 
+interface InvitationRow {
+  id: string;
+  guest_name: string;
+  guest_contact: string | null;
+  rsvp_category: string;
+  rsvp_status: string;
+  invitation_token: string | null;
+  check_in_status?: string;
+  check_in_time?: string | null;
+}
+
 export async function GET(req: NextRequest) {
   try {
     if (!(await requireUsher())) {
@@ -49,12 +60,13 @@ export async function GET(req: NextRequest) {
       .limit(20);
 
     if (error) {
-      console.error("search by name error:", error);
+      console.error("search error:", error);
       return NextResponse.json({ error: GENERIC }, { status: 500 });
     }
 
     const refByInvitation = new Map<string, string>();
-    const ids = (data || []).map((g) => g.id);
+    const rows = (data || []) as InvitationRow[];
+    const ids = rows.map((g) => g.id);
     if (ids.length > 0) {
       const { data: codes } = await supabase
         .from("rsvps")
@@ -65,7 +77,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const guests = (data || []).map((g) => ({
+    const guests = rows.map((g) => ({
       id: g.id,
       name: g.guest_name,
       contact: g.guest_contact,
