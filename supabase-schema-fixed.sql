@@ -5,6 +5,7 @@
 -- Drop existing policies if they exist
 -- ============================================
 DROP POLICY IF EXISTS "Public can view active invitations" ON invitations;
+DROP POLICY IF EXISTS "Anyone can insert invitations" ON invitations;
 DROP POLICY IF EXISTS "Anyone can update RSVP status" ON invitations;
 DROP POLICY IF EXISTS "Anyone can insert RSVPs" ON rsvps;
 DROP POLICY IF EXISTS "Anyone can insert gift confirmations" ON gift_confirmations;
@@ -74,6 +75,9 @@ ALTER TABLE gift_confirmations ENABLE ROW LEVEL SECURITY;
 -- Create policies
 CREATE POLICY "Public can view active invitations" ON invitations
   FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Anyone can insert invitations" ON invitations
+  FOR INSERT WITH CHECK (true);
 
 CREATE POLICY "Anyone can update RSVP status" ON invitations
   FOR UPDATE USING (is_active = true) WITH CHECK (is_active = true);

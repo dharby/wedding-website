@@ -12,12 +12,14 @@ interface Guest {
 }
 
 interface Form {
+  name: string;
   contact: string;
   attending: "" | "yes" | "no";
   notes: string;
 }
 
 interface Errors {
+  name?: string;
   contact?: string;
   attending?: string;
 }
@@ -36,7 +38,8 @@ export default function RSVP() {
   const [searchName, setSearchName] = useState("");
   const [searchResults, setSearchResults] = useState<Guest[]>([]);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
-  const [form, setForm] = useState<Form>({ contact: "", attending: "", notes: "" });
+  const [isNewGuest, setIsNewGuest] = useState(false);
+  const [form, setForm] = useState<Form>({ name: "", contact: "", attending: "", notes: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<"accepted" | "declined" | null>(null);
@@ -75,12 +78,21 @@ export default function RSVP() {
 
   const selectGuest = (guest: Guest) => {
     setSelectedGuest(guest);
+    setIsNewGuest(false);
+    setStep("form");
+    setError("");
+  };
+
+  const continueAsNewGuest = () => {
+    setSelectedGuest(null);
+    setIsNewGuest(true);
     setStep("form");
     setError("");
   };
 
   const validate = (): boolean => {
     const e: Errors = {};
+    if (isNewGuest && !form.name.trim()) e.name = "Please enter your full name";
     if (!form.contact.trim()) e.contact = "Please enter your email or phone number";
     if (!form.attending) e.attending = "Please let us know if you can make it";
     setErrors(e);
@@ -89,7 +101,7 @@ export default function RSVP() {
 
   const submit = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (!validate() || !selectedGuest) return;
+    if (!validate() || (!selectedGuest && !isNewGuest)) return;
     setSubmitting(true);
     setError("");
 
@@ -98,8 +110,8 @@ export default function RSVP() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          invitation_id: selectedGuest.id,
-          guest_name: selectedGuest.guest_name,
+          invitation_id: selectedGuest ? selectedGuest.id : null,
+          guest_name: isNewGuest ? form.name.trim() : selectedGuest?.guest_name,
           guest_contact: form.contact,
           attendance: form.attending,
           guest_count: 1,
@@ -152,7 +164,7 @@ export default function RSVP() {
             <span className="w-10 h-px bg-gold/30" />
           </div>
           <p className="text-[0.85rem] sm:text-[0.9rem] text-ink-muted font-sans max-w-md mx-auto leading-relaxed">
-            Search for your name to confirm your invitation and RSVP.
+            Search for your name — or RSVP as a new guest if you&apos;re not listed.
           </p>
         </motion.div>
 
@@ -196,6 +208,16 @@ export default function RSVP() {
                 </div>
               )}
 
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={continueAsNewGuest}
+                  className="text-[0.75rem] text-gold/80 font-sans underline hover:text-gold"
+                >
+                  Can&apos;t find your name? RSVP as a new guest
+                </button>
+              </div>
+
               {searchResults.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.15em] text-ink-muted/60 font-sans">
@@ -224,7 +246,7 @@ export default function RSVP() {
           )}
 
           {/* STEP 2: RSVP Form */}
-          {step === "form" && selectedGuest && (
+          {step === "form" && (selectedGuest || isNewGuest) && (
             <motion.div
               key="form"
               initial={{ opacity: 0, y: 20 }}
@@ -233,14 +255,16 @@ export default function RSVP() {
             >
               <div className="mb-6 p-4 bg-emerald/5 border border-emerald/20 rounded-[2px] text-center">
                 <p className="text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.15em] text-ink-muted/60 font-sans mb-1">
-                  Guest Found
+                  {isNewGuest ? "New Guest RSVP" : "Guest Found"}
                 </p>
-                <p className="text-[1.1rem] font-serif text-emerald font-medium">
-                  {selectedGuest.guest_name}
-                </p>
+                {!isNewGuest && selectedGuest && (
+                  <p className="text-[1.1rem] font-serif text-emerald font-medium">
+                    {selectedGuest.guest_name}
+                  </p>
+                )}
                 <button
                   type="button"
-                  onClick={() => { setStep("search"); setSelectedGuest(null); setSearchResults([]); }}
+                  onClick={() => { setStep("search"); setSelectedGuest(null); setIsNewGuest(false); setSearchResults([]); }}
                   className="mt-2 text-[0.7rem] text-gold/70 font-sans underline hover:text-gold"
                 >
                   Not you? Search again
@@ -254,6 +278,21 @@ export default function RSVP() {
               )}
 
               <form onSubmit={submit} className="space-y-5" noValidate>
+                {isNewGuest && (
+                  <div>
+                    <label className="block text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans text-ink-muted mb-1.5">
+                      Your Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(e) => update("name", e.target.value)}
+                      placeholder="Enter your full name"
+                      className={`w-full h-12 px-4 bg-white border ${errors.name ? "border-red-400" : "border-sage-border/60"} rounded-[2px] text-[0.95rem] font-sans text-ink placeholder:text-ink-muted/40 transition-colors`}
+                    />
+                    {errors.name && <p className="mt-1 text-[0.7rem] text-red-500 font-sans">{errors.name}</p>}
+                  </div>
+                )}
                 <div>
                   <label className="block text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans text-ink-muted mb-1.5">
                     Email or Phone Number *
@@ -338,7 +377,7 @@ export default function RSVP() {
                 <span className="text-cream text-xl">{result === "accepted" ? "✓" : "♥"}</span>
               </div>
               <h3 className="text-[1.5rem] sm:text-[1.5rem] font-serif text-emerald mb-2">
-                Thank you, {selectedGuest?.guest_name.split(" ")[0]} ❤️
+                Thank you, {(isNewGuest ? form.name.trim().split(" ")[0] : selectedGuest?.guest_name.split(" ")[0])} ❤️
               </h3>
               <p className="text-[0.95rem] sm:text-[1.05rem] text-ink-soft font-sans mb-4 leading-relaxed">
                 {result === "accepted"
@@ -358,7 +397,7 @@ export default function RSVP() {
               </p>
               <button
                 type="button"
-                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setResult(null); setForm({ contact: "", attending: "", notes: "" }); }}
+                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setIsNewGuest(false); setResult(null); setForm({ name: "", contact: "", attending: "", notes: "" }); }}
                 className="text-[0.75rem] text-gold/70 font-sans underline hover:text-gold"
               >
                 RSVP for another guest
