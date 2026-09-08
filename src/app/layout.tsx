@@ -58,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${greatVibes.variable} ${plusJakarta.variable} dark`}
+      className={`${cormorant.variable} ${greatVibes.variable} ${plusJakarta.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -66,10 +66,10 @@ export default function RootLayout({
           (function() {
             try {
               var theme = localStorage.getItem('wedding-theme');
-              if (theme === 'light') {
-                document.documentElement.classList.remove('dark');
-              } else {
+              if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
               }
             } catch(e) {}
           })();

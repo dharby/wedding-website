@@ -47,8 +47,8 @@ export default function Navigation() {
         transition={{ duration: 0.7, delay: 0.3 }}
         className={`hidden md:flex fixed top-0 inset-x-0 z-50 justify-center transition-all duration-500 ${
           scrolled 
-            ? "bg-cream/90 dark:bg-emerald/95 backdrop-blur-md border-b border-sage-border/50 dark:border-gold/30" 
-            : "bg-transparent"
+            ? "bg-cream/90 dark:bg-emerald backdrop-blur-md border-b border-sage-border/50 dark:border-gold/30" 
+            : "bg-transparent dark:bg-transparent"
         }`}
       >
         <div className="flex items-center gap-8 py-4">
@@ -71,7 +71,9 @@ export default function Navigation() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
         className={`md:hidden fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 py-3 transition-all duration-400 ${
-          scrolled ? "bg-cream/90 dark:bg-emerald/95 backdrop-blur-md border-b border-sage-border/40 dark:border-gold/30" : "bg-transparent"
+          scrolled
+            ? "bg-cream/90 dark:bg-emerald backdrop-blur-md border-b border-sage-border/40 dark:border-gold/30"
+            : "bg-transparent dark:bg-emerald"
         }`}
       >
         <button onClick={() => setOpen(true)} className="p-1" aria-label="Open menu">
