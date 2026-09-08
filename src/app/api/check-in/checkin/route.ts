@@ -45,6 +45,12 @@ export async function POST(req: NextRequest) {
         console.error("guest not found in fallback:", id);
         return NextResponse.json({ error: "not_found" }, { status: 404 });
       }
+      if (fb.rsvp_category !== category) {
+        return NextResponse.json(
+          { error: "category_mismatch", actualCategory: fb.rsvp_category },
+          { status: 409 }
+        );
+      }
       // No check-in columns → use rsvp_status as proxy
       if (fb.rsvp_status === "accepted") {
         return NextResponse.json({
