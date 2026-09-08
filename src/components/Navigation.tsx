@@ -46,8 +46,8 @@ export default function Navigation() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.3 }}
         className={`hidden md:flex fixed top-0 inset-x-0 z-50 justify-center transition-all duration-500 ${
-          scrolled 
-            ? "bg-cream/90 dark:bg-emerald backdrop-blur-md border-b border-sage-border/50 dark:border-gold/30" 
+          scrolled
+            ? "bg-[#FBF9F4]/95 dark:bg-[#0E281E]/95 backdrop-blur-md border-b border-[#D1DCD3]/50 dark:border-[#C5A059]/30"
             : "bg-transparent dark:bg-transparent"
         }`}
       >
@@ -72,8 +72,8 @@ export default function Navigation() {
         transition={{ duration: 0.6, delay: 0.3 }}
         className={`md:hidden fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 py-3 transition-all duration-400 ${
           scrolled
-            ? "bg-cream/90 dark:bg-emerald backdrop-blur-md border-b border-sage-border/40 dark:border-gold/30"
-            : "bg-transparent dark:bg-emerald"
+            ? "bg-[#FBF9F4]/95 dark:bg-[#0E281E]/95 backdrop-blur-md border-b border-[#D1DCD3]/40 dark:border-[#C5A059]/30"
+            : "bg-transparent dark:bg-[#0E281E]"
         }`}
       >
         <button onClick={() => setOpen(true)} className="p-1" aria-label="Open menu">

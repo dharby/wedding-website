@@ -30,16 +30,16 @@ export default function FloatingElements() {
   const [floatingItems, setFloatingItems] = useState<Array<{ id: number; type: 'heart' | 'sparkle'; char: string; left: number; delay: number; duration: number }>>([]);
 
   useEffect(() => {
-    const initialTimeout = setTimeout(() => setStarted(true), 3000);
+    const initialTimeout = setTimeout(() => setStarted(true), 5000);
     return () => clearTimeout(initialTimeout);
   }, []);
 
-  // Shuffle to the next verse/wish every 3 seconds, indefinitely.
+  // Shuffle to the next verse/wish every 20 seconds, indefinitely.
   useEffect(() => {
     if (!started) return;
     const id = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % quotes.length);
-    }, 3000);
+    }, 20000);
     return () => clearInterval(id);
   }, [started]);
 
