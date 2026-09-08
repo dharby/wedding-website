@@ -21,36 +21,54 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseServer();
     const nowIso = new Date().toISOString();
 
-    // Probe once to see if check-in columns exist
-    const probe = await supabase
+    // Fetch the guest with full columns
+    const { data: row, error: readErr } = await supabase
       .from("invitations")
-      .select("id")
-      .eq("rsvp_category", category)
+      .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token, check_in_status, check_in_time")
+      .eq("id", id)
       .eq("is_active", true)
-      .limit(1);
-    const hasCheckIn = !probe.error || !String(probe.error?.message || "").includes("check_in_status");
+      .maybeSingle();
 
-    // Fetch the guest
-    let row: any = null;
-    if (hasCheckIn) {
-      const { data } = await supabase
-        .from("invitations")
-        .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token, check_in_status, check_in_time")
-        .eq("id", id)
-        .eq("is_active", true)
-        .maybeSingle();
-      row = data;
-    } else {
-      const { data } = await supabase
+    if (readErr) {
+      // Fallback: try without check-in columns
+      const { data: fb, error: fbErr } = await supabase
         .from("invitations")
         .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token")
         .eq("id", id)
         .eq("is_active", true)
         .maybeSingle();
-      row = data;
+      if (fbErr) {
+        console.error("check-in fallback error:", fbErr);
+        return NextResponse.json({ error: GENERIC }, { status: 500 });
+      }
+      if (!fb) {
+        console.error("guest not found in fallback:", id);
+        return NextResponse.json({ error: "not_found" }, { status: 404 });
+      }
+      // No check-in columns → use rsvp_status as proxy
+      if (fb.rsvp_status === "accepted") {
+        return NextResponse.json({
+          already: true,
+          guest: { ...fb, checkInStatus: "checked_in", checkInTime: null, code: null },
+        });
+      }
+      const { error: updErr } = await supabase
+        .from("invitations")
+        .update({ rsvp_status: "accepted" })
+        .eq("id", id)
+        .eq("rsvp_category", category);
+      if (updErr) {
+        console.error("fallback update error:", updErr);
+        return NextResponse.json({ error: GENERIC }, { status: 500 });
+      }
+      return NextResponse.json({
+        checkedIn: true,
+        guest: { ...fb, rsvpStatus: "accepted", checkInStatus: "checked_in", checkInTime: nowIso, code: null },
+      });
     }
 
     if (!row) {
+      console.error("guest not found:", id);
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
     if (row.rsvp_category !== category) {
@@ -60,82 +78,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Already checked in?
-    const alreadyIn = hasCheckIn
-      ? row.check_in_status === "checked_in"
-      : row.rsvp_status === "accepted";
-
-    if (alreadyIn) {
+    if (row.check_in_status === "checked_in") {
       return NextResponse.json({
         already: true,
-        guest: {
-          id: row.id,
-          name: row.guest_name,
-          category: row.rsvp_category,
-          rsvpStatus: row.rsvp_status,
-          checkInStatus: "checked_in",
-          checkInTime: row.check_in_time || null,
-          code: null,
-        },
+        guest: { ...row, checkInStatus: "checked_in", code: null },
       });
     }
 
-    if (hasCheckIn) {
-      // Atomic update: only succeeds if still not_checked_in
-      const { data: updated, error: updateErr } = await supabase
-        .from("invitations")
-        .update({ check_in_status: "checked_in", check_in_time: nowIso, checked_in_by: "usher" })
-        .eq("id", id)
-        .eq("rsvp_category", category)
-        .eq("check_in_status", "not_checked_in")
-        .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, check_in_status, check_in_time");
+    const { data: updated, error: updateErr } = await supabase
+      .from("invitations")
+      .update({ check_in_status: "checked_in", check_in_time: nowIso, checked_in_by: "usher" })
+      .eq("id", id)
+      .eq("rsvp_category", category)
+      .eq("check_in_status", "not_checked_in")
+      .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, check_in_status, check_in_time");
 
-      if (updateErr || !updated || updated.length === 0) {
-        const { data: current } = await supabase
-          .from("invitations")
-          .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, check_in_status, check_in_time")
-          .eq("id", id)
-          .maybeSingle();
-        if (current && (current as any).check_in_status === "checked_in") {
-          return NextResponse.json({ already: true, guest: { ...(current as any), checkInStatus: "checked_in", code: null } });
-        }
-        console.error("check-in update error:", updateErr);
-        return NextResponse.json({ error: GENERIC }, { status: 500 });
-      }
-      return NextResponse.json({
-        checkedIn: true,
-        guest: {
-          ...updated[0],
-          checkInStatus: "checked_in",
-          checkInTime: nowIso,
-          code: null,
-        },
-      });
-    } else {
-      // Fallback: no check-in columns yet → mark as accepted
-      const { error: updateErr } = await supabase
+    if (updateErr || !updated || updated.length === 0) {
+      const { data: current } = await supabase
         .from("invitations")
-        .update({ rsvp_status: "accepted" })
+        .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, check_in_status, check_in_time")
         .eq("id", id)
-        .eq("rsvp_category", category);
-      if (updateErr) {
-        console.error("fallback update error:", updateErr);
-        return NextResponse.json({ error: GENERIC }, { status: 500 });
+        .maybeSingle();
+      if (current && (current as any).check_in_status === "checked_in") {
+        return NextResponse.json({ already: true, guest: { ...(current as any), checkInStatus: "checked_in", code: null } });
       }
-      return NextResponse.json({
-        checkedIn: true,
-        guest: {
-          id: row.id,
-          name: row.guest_name,
-          contact: row.guest_contact,
-          category: row.rsvp_category,
-          rsvpStatus: "accepted",
-          checkInStatus: "checked_in",
-          checkInTime: nowIso,
-          code: null,
-        },
-      });
+      console.error("check-in update error:", updateErr);
+      return NextResponse.json({ error: GENERIC }, { status: 500 });
     }
+
+    return NextResponse.json({
+      checkedIn: true,
+      guest: { ...updated[0], checkInStatus: "checked_in", checkInTime: nowIso, code: null },
+    });
   } catch (e) {
     console.error("check-in failed:", e);
     return NextResponse.json({ error: GENERIC }, { status: 500 });
