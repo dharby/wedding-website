@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { submitRSVP } from "@/lib/types";
+import { submitRSVP, isRSVPCategory, type RSVPCategory } from "@/lib/types";
 import { getSupabaseServer } from "@/lib/supabase";
 
 function generateToken(): string {
@@ -9,17 +9,20 @@ function generateToken(): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { invitation_id, guest_name, guest_contact, attendance, guest_count, meal_preference, message } = body;
+    const { invitation_id, guest_name, guest_contact, attendance, guest_count, meal_preference, message, rsvp_category } = body;
 
     if (!guest_name || !attendance) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    const category: RSVPCategory = isRSVPCategory(rsvp_category) ? rsvp_category : "couple";
 
     const result = await submitRSVP({
       invitation_id: invitation_id || null,
       guest_name: guest_name.trim(),
       guest_contact,
       attendance,
+      rsvp_category: category,
       guest_count: Math.min(guest_count || 1, 1),
       meal_preference,
       message,
@@ -41,6 +44,7 @@ export async function POST(req: NextRequest) {
           .from("invitations")
           .update({
             rsvp_status: rsvpStatus,
+            rsvp_category: category,
             rsvp_id: result.rsvp_id,
             updated_at: new Date().toISOString(),
           })
@@ -68,6 +72,7 @@ export async function POST(req: NextRequest) {
             .from("invitations")
             .update({
               rsvp_status: rsvpStatus,
+              rsvp_category: category,
               rsvp_id: result.rsvp_id,
               updated_at: new Date().toISOString(),
             })
@@ -81,6 +86,7 @@ export async function POST(req: NextRequest) {
               guest_contact: guest_contact || null,
               allowed_guests: 1,
               rsvp_status: rsvpStatus,
+              rsvp_category: category,
               rsvp_id: result.rsvp_id,
               is_active: true,
             })

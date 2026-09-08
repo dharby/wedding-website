@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS invitations (
   guest_contact TEXT,
   allowed_guests INTEGER DEFAULT 1,
   rsvp_status TEXT DEFAULT 'pending' CHECK (rsvp_status IN ('pending', 'accepted', 'declined')),
+  rsvp_category TEXT DEFAULT 'couple' CHECK (rsvp_category IN ('grooms_parents', 'brides_parents', 'couple')),
   rsvp_id UUID,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS rsvps (
   guest_name TEXT NOT NULL,
   guest_contact TEXT,
   attendance TEXT NOT NULL CHECK (attendance IN ('yes', 'no')),
+  rsvp_category TEXT DEFAULT 'couple' CHECK (rsvp_category IN ('grooms_parents', 'brides_parents', 'couple')),
   guest_count INTEGER DEFAULT 1,
   meal_preference TEXT,
   message TEXT,
@@ -103,7 +105,14 @@ CREATE POLICY "Service role full access on gift_confirmations" ON gift_confirmat
 CREATE OR REPLACE FUNCTION generate_reference_number()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.reference_number := 'AT-2026-' || upper(substring(md5(random()::text) from 1 for 4));
+  -- Prefix keeps the 3 RSVP lists distinct at the entrance:
+  -- GP = Groom's Parents, BP = Bride's Parents, AT = The Couple
+  NEW.reference_number :=
+    CASE NEW.rsvp_category
+      WHEN 'grooms_parents' THEN 'GP-2026-'
+      WHEN 'brides_parents' THEN 'BP-2026-'
+      ELSE 'AT-2026-'
+    END || upper(substring(md5(random()::text) from 1 for 4));
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -118,9 +127,9 @@ CREATE TRIGGER set_reference_number
 -- ============================================
 -- SAMPLE DATA (optional - for testing)
 -- ============================================
-INSERT INTO invitations (invitation_token, guest_name, guest_contact, allowed_guests, rsvp_status, is_active)
+INSERT INTO invitations (invitation_token, guest_name, guest_contact, allowed_guests, rsvp_status, rsvp_category, is_active)
 VALUES
-  ('tok_abc123def456', 'Adaeze Okonkwo', 'adaeze@email.com', 1, 'pending', true),
-  ('tok_xyz789ghi012', 'Emeka Nwankwo', 'emeka@email.com', 1, 'pending', true),
-  ('tok_pqr345stu678', 'Fatima Abubakar', 'fatima@email.com', 1, 'pending', true)
+  ('tok_abc123def456', 'Adaeze Okonkwo', 'adaeze@email.com', 1, 'pending', 'grooms_parents', true),
+  ('tok_xyz789ghi012', 'Emeka Nwankwo', 'emeka@email.com', 1, 'pending', 'brides_parents', true),
+  ('tok_pqr345stu678', 'Fatima Abubakar', 'fatima@email.com', 1, 'pending', 'couple', true)
 ON CONFLICT (invitation_token) DO NOTHING;

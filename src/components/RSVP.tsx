@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RSVP_CATEGORIES, rsvpCategoryLabel, isRSVPCategory, type RSVPCategory } from "@/lib/types";
 
 interface Guest {
   id: string;
   guest_name: string;
   invitation_token: string;
   rsvp_status: string;
+  rsvp_category: string | null;
   rsvp_id: string | null;
 }
 
@@ -15,6 +17,7 @@ interface Form {
   name: string;
   contact: string;
   attending: "" | "yes" | "no";
+  category: "" | RSVPCategory;
   notes: string;
 }
 
@@ -22,6 +25,7 @@ interface Errors {
   name?: string;
   contact?: string;
   attending?: string;
+  category?: string;
 }
 
 const reveal = {
@@ -39,7 +43,7 @@ export default function RSVP() {
   const [searchResults, setSearchResults] = useState<Guest[]>([]);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [isNewGuest, setIsNewGuest] = useState(false);
-  const [form, setForm] = useState<Form>({ name: "", contact: "", attending: "", notes: "" });
+  const [form, setForm] = useState<Form>({ name: "", contact: "", attending: "", category: "", notes: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<"accepted" | "declined" | null>(null);
@@ -79,6 +83,8 @@ export default function RSVP() {
   const selectGuest = (guest: Guest) => {
     setSelectedGuest(guest);
     setIsNewGuest(false);
+    // Preselect the guest's existing list; they can still change it.
+    setForm((p) => ({ ...p, category: isRSVPCategory(guest.rsvp_category) ? guest.rsvp_category : "" }));
     setStep("form");
     setError("");
   };
@@ -86,6 +92,7 @@ export default function RSVP() {
   const continueAsNewGuest = () => {
     setSelectedGuest(null);
     setIsNewGuest(true);
+    setForm((p) => ({ ...p, category: "" }));
     setStep("form");
     setError("");
   };
@@ -93,6 +100,7 @@ export default function RSVP() {
   const validate = (): boolean => {
     const e: Errors = {};
     if (isNewGuest && !form.name.trim()) e.name = "Please enter your full name";
+    if (!form.category) e.category = "Please choose who you are registering under";
     if (!form.contact.trim()) e.contact = "Please enter your email or phone number";
     if (!form.attending) e.attending = "Please let us know if you can make it";
     setErrors(e);
@@ -114,6 +122,7 @@ export default function RSVP() {
           guest_name: isNewGuest ? form.name.trim() : selectedGuest?.guest_name,
           guest_contact: form.contact,
           attendance: form.attending,
+          rsvp_category: form.category,
           guest_count: 1,
           meal_preference: null,
           message: form.notes || null,
@@ -166,6 +175,11 @@ export default function RSVP() {
           <p className="text-[0.85rem] sm:text-[0.9rem] text-ink-muted font-sans max-w-md mx-auto leading-relaxed">
             Search for your name — or RSVP as a new guest if you&apos;re not listed.
           </p>
+          <div className="mt-4 max-w-md mx-auto p-3 bg-gold/10 border border-gold/40 rounded-[2px]">
+            <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-soft font-sans leading-relaxed">
+              🔒 This website is a private invitation for intended guests only. Please do not share or forward it to anyone.
+            </p>
+          </div>
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -233,6 +247,9 @@ export default function RSVP() {
                       <p className="text-[0.95rem] font-serif text-emerald font-medium">
                         {guest.guest_name}
                       </p>
+                      <p className="text-[0.65rem] uppercase tracking-[0.15em] text-gold/80 font-sans mt-1">
+                        {rsvpCategoryLabel(guest.rsvp_category)}
+                      </p>
                       {guest.rsvp_status !== "pending" && (
                         <p className="text-[0.7rem] text-gold/70 font-sans mt-1">
                           Already RSVP&apos;d: {guest.rsvp_status}
@@ -264,7 +281,7 @@ export default function RSVP() {
                 )}
                 <button
                   type="button"
-                  onClick={() => { setStep("search"); setSelectedGuest(null); setIsNewGuest(false); setSearchResults([]); }}
+                  onClick={() => { setStep("search"); setSelectedGuest(null); setIsNewGuest(false); setSearchResults([]); setForm((p) => ({ ...p, category: "" })); }}
                   className="mt-2 text-[0.7rem] text-gold/70 font-sans underline hover:text-gold"
                 >
                   Not you? Search again
@@ -278,6 +295,33 @@ export default function RSVP() {
               )}
 
               <form onSubmit={submit} className="space-y-5" noValidate>
+                <div>
+                  <label className="block text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans text-ink-muted mb-2">
+                    Who are you registering under? *
+                  </label>
+                  <div className="space-y-2">
+                    {RSVP_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        type="button"
+                        onClick={() => update("category", cat.value)}
+                        className={`w-full p-3 rounded-[2px] text-left border transition-all duration-300 ${
+                          form.category === cat.value
+                            ? "bg-emerald text-cream border-gold/40"
+                            : "bg-white text-ink-soft border-sage-border/60 hover:border-emerald-soft/40"
+                        }`}
+                      >
+                        <p className={`text-[0.85rem] font-sans font-semibold tracking-wide ${form.category === cat.value ? "text-cream" : "text-emerald"}`}>
+                          {cat.label}
+                        </p>
+                        <p className={`text-[0.7rem] font-sans mt-0.5 ${form.category === cat.value ? "text-cream/70" : "text-ink-muted/70"}`}>
+                          {cat.detail}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                  {errors.category && <p className="mt-1 text-[0.7rem] text-red-500 font-sans">{errors.category}</p>}
+                </div>
                 {isNewGuest && (
                   <div>
                     <label className="block text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans text-ink-muted mb-1.5">
@@ -386,18 +430,27 @@ export default function RSVP() {
               </p>
               <div className="bg-white border border-sage-border/40 rounded-[2px] py-4 px-6 mb-4 inline-block">
                 <p className="text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
+                  Registered Under
+                </p>
+                <p className="text-[0.95rem] sm:text-[1.05rem] font-serif text-emerald font-medium mb-3">
+                  {rsvpCategoryLabel(form.category)}
+                </p>
+                <p className="text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
                   Your Reference Number
                 </p>
                 <p className="text-[1rem] sm:text-[1.25rem] font-serif text-emerald font-medium tracking-wide">
                   {refNum}
                 </p>
               </div>
+              <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/60 font-sans mb-6">
+                Please present this reference number at the entrance.
+              </p>
               <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/50 font-sans mb-6">
                 This invitation admits one guest only. Plus-ones are not permitted.
               </p>
               <button
                 type="button"
-                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setIsNewGuest(false); setResult(null); setForm({ name: "", contact: "", attending: "", notes: "" }); }}
+                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setIsNewGuest(false); setResult(null); setForm({ name: "", contact: "", attending: "", category: "", notes: "" }); }}
                 className="text-[0.75rem] text-gold/70 font-sans underline hover:text-gold"
               >
                 RSVP for another guest

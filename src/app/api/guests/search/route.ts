@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     const { data: guests, error } = await supabase
       .from("invitations")
-      .select("id, guest_name, invitation_token, rsvp_status, rsvp_id")
+      .select("id, guest_name, invitation_token, rsvp_status, rsvp_category, rsvp_id")
       .ilike("guest_name", `%${name.trim()}%`)
       .eq("is_active", true)
       .order("guest_name");

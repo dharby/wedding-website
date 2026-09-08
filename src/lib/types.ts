@@ -1,5 +1,23 @@
 // Wedding data types and models for Supabase integration
 
+// The 3 RSVP lists: guests register under one of these so entrance
+// ushers can check each list separately.
+export type RSVPCategory = "grooms_parents" | "brides_parents" | "couple";
+
+export const RSVP_CATEGORIES: { value: RSVPCategory; label: string; detail: string }[] = [
+  { value: "grooms_parents", label: "Groom's Parents", detail: "Mr. Samson & Mrs. Olajoke Ekwubiri" },
+  { value: "brides_parents", label: "Bride's Parents", detail: "Pst Olugbenga & Deaconess Ibiyinka Adeoye" },
+  { value: "couple", label: "The Couple", detail: "Anuoluwapo & Tochukwu" },
+];
+
+export function isRSVPCategory(v: unknown): v is RSVPCategory {
+  return v === "grooms_parents" || v === "brides_parents" || v === "couple";
+}
+
+export function rsvpCategoryLabel(v: string | null | undefined): string {
+  return RSVP_CATEGORIES.find((c) => c.value === v)?.label ?? "The Couple";
+}
+
 export interface Invitation {
   id: string;
   invitation_token: string;
@@ -7,6 +25,7 @@ export interface Invitation {
   guest_contact: string;
   allowed_guests: number;
   rsvp_status: "pending" | "accepted" | "declined";
+  rsvp_category: RSVPCategory;
   rsvp_id: string | null;
   is_active: boolean;
   created_at: string;
@@ -20,6 +39,7 @@ export interface RSVPRecord {
   guest_name: string;
   guest_contact: string;
   attendance: "yes" | "no";
+  rsvp_category: RSVPCategory;
   guest_count: number;
   meal_preference: string | null;
   message: string | null;
@@ -45,6 +65,7 @@ export async function submitRSVP(data: Omit<RSVPRecord, "id" | "reference_number
       guest_name: data.guest_name,
       guest_contact: data.guest_contact,
       attendance: data.attendance,
+      rsvp_category: data.rsvp_category || "couple",
       guest_count: Math.min(data.guest_count || 1, 1),
       meal_preference: data.meal_preference,
       message: data.message,

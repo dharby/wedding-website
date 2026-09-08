@@ -402,6 +402,17 @@ export default function EnvelopeOpening({ onOpen }: EnvelopeOpeningProps) {
         >
           Skip Intro
         </motion.button>
+
+        {/* Privacy notice */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: phase === "ready" ? 1 : 0 }}
+          transition={{ duration: 0.8, delay: 1.4 }}
+          className="mt-4 max-w-xs text-center text-[0.55rem] sm:text-[0.6rem] uppercase tracking-[0.2em] font-sans"
+          style={{ color: isDark ? "rgba(197,160,89,0.75)" : "rgba(14,40,30,0.55)" }}
+        >
+          🔒 Strictly for invited guests — please do not share or forward this invitation
+        </motion.p>
       </div>
     </div>
   );

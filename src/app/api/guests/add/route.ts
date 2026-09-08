@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase";
+import { isRSVPCategory } from "@/lib/types";
 
 function generateToken(): string {
   return "tok_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -16,19 +17,20 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseServer();
 
-    const insertData = guests.map((guest: { name: string; contact?: string }) => ({
+    const insertData = guests.map((guest: { name: string; contact?: string; category?: string }) => ({
       invitation_token: generateToken(),
       guest_name: guest.name,
       guest_contact: guest.contact || null,
       allowed_guests: 1,
       rsvp_status: "pending",
+      rsvp_category: isRSVPCategory(guest.category) ? guest.category : "couple",
       is_active: true,
     }));
 
     const { data, error } = await supabase
       .from("invitations")
       .insert(insertData)
-      .select("id, guest_name, invitation_token");
+      .select("id, guest_name, invitation_token, rsvp_category");
 
     if (error) {
       console.error("Insert error:", error);
