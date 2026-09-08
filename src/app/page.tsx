@@ -43,25 +43,11 @@ function ThemeToggle() {
   );
 }
 
-function MusicToggle() {
-  const [playing, setPlaying] = useState(false);
-
-  const toggleMusic = () => {
-    const audio = document.getElementById('wedding-music') as HTMLAudioElement;
-    if (audio) {
-      if (playing) {
-        audio.pause();
-      } else {
-        audio.play().catch(() => {});
-      }
-      setPlaying(!playing);
-    }
-  };
-
+function MusicToggle({ playing, onToggle }: { playing: boolean; onToggle: () => void }) {
   return (
     <button
-      onClick={toggleMusic}
-      className="fixed bottom-5 right-5 z-40 w-9 h-9 rounded-full bg-emerald/80 backdrop-blur-sm flex items-center justify-center text-cream/80 hover:text-cream hover:bg-emerald transition-all duration-300 md:bottom-8 md:right-8"
+      onClick={onToggle}
+      className="fixed bottom-5 right-5 z-[100] w-9 h-9 rounded-full bg-emerald/80 backdrop-blur-sm flex items-center justify-center text-cream/80 hover:text-cream hover:bg-emerald transition-all duration-300 md:bottom-8 md:right-8"
       aria-label={playing ? "Pause music" : "Play music"}
     >
       {playing ? (
@@ -80,33 +66,43 @@ function MusicToggle() {
   );
 }
 
-function MusicPlayer() {
-  const [playing, setPlaying] = useState(false);
-
-  useEffect(() => {
-    const audio = document.getElementById('wedding-music') as HTMLAudioElement;
-    if (playing) {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-    } else {
-      audio.pause();
-    }
-  }, [playing]);
-
-  return (
-    <audio
-      id="wedding-music"
-      src="/music/MAJOR._-_Why_I_Love_You_(mp3.pm).mp3"
-      style={{ display: 'none' }}
-      autoPlay={false}
-      loop
-    />
-  );
-}
-
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [musicPlaying, setMusicPlaying] = useState(false);
+
+  const playMusic = useCallback(() => {
+    const audio = document.getElementById('wedding-music') as HTMLAudioElement | null;
+    if (!audio) return;
+    audio.play().then(() => setMusicPlaying(true)).catch(() => {});
+  }, []);
+
+  const toggleMusic = useCallback(() => {
+    const audio = document.getElementById('wedding-music') as HTMLAudioElement | null;
+    if (!audio) return;
+    if (musicPlaying) {
+      audio.pause();
+      setMusicPlaying(false);
+    } else {
+      audio.play().then(() => setMusicPlaying(true)).catch(() => {});
+    }
+  }, [musicPlaying]);
+
+  // Attempt autoplay on load (browsers may block until first tap);
+  // keep UI in sync with the actual audio element.
+  useEffect(() => {
+    playMusic();
+    const audio = document.getElementById('wedding-music') as HTMLAudioElement | null;
+    if (!audio) return;
+    const onPlay = () => setMusicPlaying(true);
+    const onPause = () => setMusicPlaying(false);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    return () => {
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+    };
+  }, [playMusic]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -117,10 +113,13 @@ export default function Home() {
     return () => document.body.classList.remove("scroll-locked");
   }, [isOpen]);
 
+  // Opening the envelope is a user gesture, so start music here.
+  // It keeps looping until the visitor manually pauses it.
   const handleOpen = useCallback(() => {
+    playMusic();
     setIsOpen(true);
     setTimeout(() => setShowContent(true), 100);
-  }, []);
+  }, [playMusic]);
 
   const handleReplay = useCallback(() => {
     setShowContent(false);
@@ -130,6 +129,17 @@ export default function Home() {
 
   return (
     <main className="relative">
+      {/* Always mounted: music starts on envelope tap and loops until manually stopped */}
+      <audio
+        id="wedding-music"
+        src="/music/MAJOR._-_Why_I_Love_You_(mp3.pm).mp3"
+        style={{ display: 'none' }}
+        preload="auto"
+        loop
+      />
+      {/* Floating music button visible from the envelope splash screen onward */}
+      <MusicToggle playing={musicPlaying} onToggle={toggleMusic} />
+
       <AnimatePresence>
         {!isOpen && <EnvelopeOpening onOpen={handleOpen} />}
       </AnimatePresence>
@@ -138,8 +148,6 @@ export default function Home() {
         <>
           <Navigation />
           <ThemeToggle />
-          <MusicToggle />
-          <MusicPlayer />
           <FloatingElements />
 
           <div id="home">
