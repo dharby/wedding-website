@@ -7,7 +7,6 @@ import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import FamilyInvitation from "@/components/FamilyInvitation";
 import WeddingDetails from "@/components/WeddingDetails";
-import Countdown from "@/components/Countdown";
 import DressCode from "@/components/DressCode";
 import OurStory from "@/components/OurStory";
 import Gallery from "@/components/Gallery";
@@ -47,9 +46,10 @@ function MusicToggle({ playing, onToggle }: { playing: boolean; onToggle: () => 
   return (
     <button
       onClick={onToggle}
-      className="fixed bottom-5 right-5 z-[100] w-9 h-9 rounded-full bg-emerald/80 backdrop-blur-sm flex items-center justify-center text-cream/80 hover:text-cream hover:bg-emerald transition-all duration-300 md:bottom-8 md:right-8"
+      className="fixed bottom-5 right-5 z-[100] w-11 h-11 rounded-full bg-emerald backdrop-blur-sm flex items-center justify-center text-cream hover:bg-emerald-mid transition-all duration-300 md:bottom-8 md:right-8 border border-gold/70 shadow-[0_0_24px_4px_rgba(197,160,89,0.55)]"
       aria-label={playing ? "Pause music" : "Play music"}
     >
+      <span className="absolute inset-0 rounded-full border-2 border-gold/50 animate-ping [animation-duration:2.2s] pointer-events-none" />
       {playing ? (
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
           <rect x="6" y="4" width="4" height="16" rx="1" />
@@ -167,10 +167,6 @@ export default function Home() {
           <div className="w-24 mx-auto border-t border-gold/30" />
 
           <WeddingDetails />
-
-          <div className="w-24 mx-auto border-t border-gold/30" />
-
-          <Countdown />
 
           <div className="w-24 mx-auto border-t border-gold/30" />
 

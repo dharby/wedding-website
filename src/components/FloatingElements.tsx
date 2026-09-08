@@ -26,26 +26,22 @@ const sparkles = ["✨", "⭐", "💫", "🌟"];
 
 export default function FloatingElements() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
+  const [started, setStarted] = useState(false);
   const [floatingItems, setFloatingItems] = useState<Array<{ id: number; type: 'heart' | 'sparkle'; char: string; left: number; delay: number; duration: number }>>([]);
 
   useEffect(() => {
-    const initialTimeout = setTimeout(() => setIsVisible(true), 3000);
+    const initialTimeout = setTimeout(() => setStarted(true), 3000);
     return () => clearTimeout(initialTimeout);
   }, []);
 
+  // Shuffle to the next verse/wish every 3 seconds, indefinitely.
   useEffect(() => {
-    if (!isVisible) return;
-    const hideTimeout = setTimeout(() => setIsVisible(false), 4000);
-    const showNextTimeout = setTimeout(() => {
+    if (!started) return;
+    const id = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % quotes.length);
-      setIsVisible(true);
-    }, 5000);
-    return () => {
-      clearTimeout(hideTimeout);
-      clearTimeout(showNextTimeout);
-    };
-  }, [isVisible, currentIndex]);
+    }, 3000);
+    return () => clearInterval(id);
+  }, [started]);
 
   // Floating hearts and sparkles
   useEffect(() => {
@@ -102,9 +98,10 @@ export default function FloatingElements() {
 
       {/* Bible verse notification */}
       <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none w-full max-w-sm px-4">
-        <AnimatePresence>
-          {isVisible && (
+        <AnimatePresence mode="wait">
+          {started && (
             <motion.div
+              key={currentIndex}
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}

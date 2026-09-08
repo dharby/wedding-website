@@ -10,7 +10,7 @@ interface TimeUnit {
   value: number;
 }
 
-export default function Countdown() {
+export default function Countdown({ compact = false }: { compact?: boolean }) {
   const [units, setUnits] = useState<TimeUnit[]>([
     { label: "Days", value: 0 },
     { label: "Hours", value: 0 },
@@ -38,6 +38,33 @@ export default function Countdown() {
     const id = setInterval(calc, 1000);
     return () => clearInterval(id);
   }, []);
+
+  // Compact timer for embedding under the hero buttons.
+  if (compact) {
+    if (isToday) {
+      return (
+        <p className="text-[1.4rem] sm:text-[1.6rem] font-serif text-emerald">
+          Today is the Day
+        </p>
+      );
+    }
+    return (
+      <div className="flex items-start justify-center gap-2 sm:gap-3">
+        {units.map((u) => (
+          <div key={u.label} className="flex flex-col items-center">
+            <div className="w-[3.2rem] h-[3.6rem] sm:w-[4.2rem] sm:h-[4.6rem] flex items-center justify-center border border-sage-border/60 rounded-[2px] bg-white/50">
+              <span className="text-[1.4rem] sm:text-[1.8rem] font-serif text-emerald font-light tabular-nums">
+                {String(u.value).padStart(2, "0")}
+              </span>
+            </div>
+            <span className="mt-1.5 text-[0.45rem] sm:text-[0.6rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans">
+              {u.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <section className="py-12 md:py-18 bg-cream">

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Countdown from "@/components/Countdown";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -135,6 +136,16 @@ export default function Hero() {
           >
             Explore the Details
           </button>
+        </motion.div>
+
+        <motion.div
+          custom={7}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          className="mt-8"
+        >
+          <Countdown compact />
         </motion.div>
       </div>
     </section>
