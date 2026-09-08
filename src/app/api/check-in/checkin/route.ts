@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       if (fb.rsvp_status === "accepted") {
         return NextResponse.json({
           already: true,
-          guest: { ...fb, checkInStatus: "checked_in", checkInTime: null, code: null },
+          guest: { ...fb, category: fb.rsvp_category, checkInStatus: "checked_in", checkInTime: null, code: null },
         });
       }
       const { error: updErr } = await supabase
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       }
       return NextResponse.json({
         checkedIn: true,
-        guest: { ...fb, rsvpStatus: "accepted", checkInStatus: "checked_in", checkInTime: nowIso, code: null },
+        guest: { ...fb, category: fb.rsvp_category, rsvpStatus: "accepted", checkInStatus: "checked_in", checkInTime: nowIso, code: null },
       });
     }
 
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     if (row.check_in_status === "checked_in") {
       return NextResponse.json({
         already: true,
-        guest: { ...row, checkInStatus: "checked_in", code: null },
+        guest: { ...row, category: row.rsvp_category, checkInStatus: "checked_in", code: null },
       });
     }
 
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
         .eq("id", id)
         .maybeSingle();
       if (current && (current as any).check_in_status === "checked_in") {
-        return NextResponse.json({ already: true, guest: { ...(current as any), checkInStatus: "checked_in", code: null } });
+        return NextResponse.json({ already: true, guest: { ...(current as any), category: (current as any).rsvp_category, checkInStatus: "checked_in", code: null } });
       }
       console.error("check-in update error:", updateErr);
       return NextResponse.json({ error: GENERIC }, { status: 500 });
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       checkedIn: true,
-      guest: { ...updated[0], checkInStatus: "checked_in", checkInTime: nowIso, code: null },
+      guest: { ...updated[0], category: updated[0].rsvp_category, checkInStatus: "checked_in", checkInTime: nowIso, code: null },
     });
   } catch (e) {
     console.error("check-in failed:", e);

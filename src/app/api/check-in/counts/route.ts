@@ -20,18 +20,30 @@ export async function GET() {
           .eq("rsvp_category", c.value)
           .eq("is_active", true);
 
-        // Count checked-in guests (will be 0 if check_in columns don't exist yet)
+        // Count checked-in guests (with fallback if check_in columns don't exist)
         let checkedIn = 0;
         try {
-          const { count } = await supabase
+          const { count, error: ciErr } = await supabase
             .from("invitations")
             .select("id", { count: "exact", head: true })
             .eq("rsvp_category", c.value)
             .eq("is_active", true)
             .eq("check_in_status", "checked_in");
+          if (ciErr) throw ciErr;
           checkedIn = count || 0;
         } catch {
-          // check_in columns don't exist yet — that's fine
+          // check_in columns don't exist — fall back to rsvp_status = accepted
+          try {
+            const { count: fbCount } = await supabase
+              .from("invitations")
+              .select("id", { count: "exact", head: true })
+              .eq("rsvp_category", c.value)
+              .eq("is_active", true)
+              .eq("rsvp_status", "accepted");
+            checkedIn = fbCount || 0;
+          } catch {
+            // keep 0
+          }
         }
 
         return { category: c.value, registered: registered || 0, checkedIn };

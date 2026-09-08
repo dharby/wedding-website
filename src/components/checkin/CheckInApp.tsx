@@ -11,7 +11,7 @@ import {
 const QrScanner = dynamic(() => import("@/components/checkin/QrScanner"), { ssr: false });
 
 type Screen = "loading" | "login" | "categories" | "desk";
-type DeskTab = "search" | "scan";
+type DeskTab = "search" | "scan" | "checked";
 
 interface Guest {
   id: string;
@@ -90,6 +90,11 @@ export default function CheckInApp() {
   const [scanKey, setScanKey] = useState(0); // remount scanner to resume
   const handledScan = useRef<string | null>(null);
   const overlayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [checkedList, setCheckedList] = useState<Guest[]>([]);
+  const [checkedTotal, setCheckedTotal] = useState(0);
+  const [checkedQuery, setCheckedQuery] = useState("");
+  const [checkedLoading, setCheckedLoading] = useState(false);
 
   const goLogin = useCallback(() => {
     setScreen("login");
@@ -198,6 +203,21 @@ export default function CheckInApp() {
     setScreen("desk");
     loadCounts();
   };
+
+  const loadCheckedList = useCallback(async (search?: string) => {
+    setCheckedLoading(true);
+    try {
+      const qs = search ? `?q=${encodeURIComponent(search)}` : "";
+      const { res, data } = await api(`/api/check-in/all-checked-in${qs}`);
+      if (res.status === 401) { expired(); return; }
+      if (res.ok) {
+        setCheckedList(data.guests || []);
+        setCheckedTotal(data.total || 0);
+      }
+    } catch { /* keep old list */ } finally {
+      setCheckedLoading(false);
+    }
+  }, [expired]);
 
   const doSearch = async () => {
     if (!category || searching) return;
@@ -477,8 +497,8 @@ export default function CheckInApp() {
 
       {/* Tabs */}
       <div className="px-5 pt-4 max-w-md mx-auto w-full">
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-[#0E281E]/5 border border-[#0E281E]/10">
-          {(["search", "scan"] as DeskTab[]).map((t) => (
+        <div className="grid grid-cols-3 gap-1.5 p-1 rounded-lg bg-[#0E281E]/5 border border-[#0E281E]/10">
+          {(["search", "scan", "checked"] as DeskTab[]).map((t) => (
             <button
               key={t}
               onClick={() => {
@@ -489,12 +509,16 @@ export default function CheckInApp() {
                   setCameraBlocked(false);
                   setScanKey((k) => k + 1);
                 }
+                if (t === "checked") {
+                  loadCheckedList();
+                  loadCounts();
+                }
               }}
-              className={`h-12 rounded-md text-sm uppercase tracking-[0.15em] font-medium touch-manipulation ${
+              className={`h-12 rounded-md text-xs uppercase tracking-[0.1em] font-medium touch-manipulation ${
                 tab === t ? "bg-[#0E281E] text-[#FBF9F4]" : "text-[#0E281E]/60"
               }`}
             >
-              {t === "search" ? "Search guest" : "Scan QR code"}
+              {t === "search" ? "Search" : t === "scan" ? "Scan QR" : `Checked (${counts?.totalCheckedIn ?? "…"})`}
             </button>
           ))}
         </div>
@@ -578,6 +602,71 @@ export default function CheckInApp() {
             <p className="mt-3 text-center text-xs text-[#0E281E]/50">
               Point the camera at the guest&apos;s invitation code
             </p>
+          </div>
+        )}
+
+        {tab === "checked" && !detail && (
+          <div>
+            <div className="flex gap-2 mb-4">
+              <input
+                value={checkedQuery}
+                onChange={(e) => setCheckedQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && loadCheckedList(checkedQuery)}
+                placeholder="Search checked-in guests"
+                className={inputCls}
+              />
+              <button
+                onClick={() => loadCheckedList(checkedQuery)}
+                disabled={checkedLoading}
+                className="shrink-0 h-14 px-5 rounded-md bg-[#0E281E] text-[#FBF9F4] text-sm uppercase tracking-[0.12em] font-medium border border-[#C5A059]/40 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
+              >
+                {checkedLoading ? "…" : "Go"}
+              </button>
+            </div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#0E281E]/60">
+                {checkedTotal} guest{checkedTotal !== 1 ? "s" : ""} checked in
+              </p>
+              <button
+                onClick={() => loadCheckedList(checkedQuery)}
+                className="text-xs text-[#C5A059] uppercase tracking-wider"
+              >
+                Refresh
+              </button>
+            </div>
+            {checkedList.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-[#0E281E]/40 text-sm">No guests checked in yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {checkedList.map((g) => (
+                  <div
+                    key={g.id}
+                    className="p-4 rounded-lg bg-white border border-[#0E281E]/15"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-base font-medium truncate">{g.name}</p>
+                        <p className="text-xs uppercase tracking-[0.15em] text-[#C5A059] mt-0.5">
+                          {checkinCategoryLabel(g.category)}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+                        ✓ In
+                      </span>
+                    </div>
+                    <div className="mt-2 text-xs text-[#0E281E]/60 space-y-0.5">
+                      {g.contact && <p>{g.contact}</p>}
+                      {g.code && <p className="font-mono">{g.code}</p>}
+                      {g.checkInTime && (
+                        <p>Checked in at {formatTime(g.checkInTime)}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

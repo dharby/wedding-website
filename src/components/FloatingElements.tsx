@@ -26,23 +26,33 @@ const sparkles = ["✨", "⭐", "💫", "🌟"];
 
 export default function FloatingElements() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [started, setStarted] = useState(false);
+  const [showing, setShowing] = useState(false);
   const [floatingItems, setFloatingItems] = useState<Array<{ id: number; type: 'heart' | 'sparkle'; char: string; left: number; delay: number; duration: number }>>([]);
 
-  // Show first verse after 8s, then cycle every 25 seconds.
+  // Cycle: show for 3s → fade for 1s → hide for 10s → next verse → repeat
   useEffect(() => {
-    const initialTimeout = setTimeout(() => setStarted(true), 8000);
-    return () => clearTimeout(initialTimeout);
+    const startDelay = setTimeout(() => {
+      setShowing(true);
+    }, 5000);
+    return () => clearTimeout(startDelay);
   }, []);
 
-  // Cycle every 25 seconds
   useEffect(() => {
-    if (!started) return;
-    const id = setInterval(() => {
+    if (!showing) return;
+    // Show for 3s, then hide
+    const showTimer = setTimeout(() => setShowing(false), 3000);
+    return () => clearTimeout(showTimer);
+  }, [showing, currentIndex]);
+
+  useEffect(() => {
+    if (showing) return;
+    // Hide for 10s, then advance to next verse and show
+    const hideTimer = setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % quotes.length);
-    }, 25000);
-    return () => clearInterval(id);
-  }, [started]);
+      setShowing(true);
+    }, 10000);
+    return () => clearTimeout(hideTimer);
+  }, [showing]);
 
   // Floating hearts and sparkles
   useEffect(() => {
@@ -100,7 +110,7 @@ export default function FloatingElements() {
       {/* Bible verse notification — positioned above the music button to avoid blocking hero content */}
       <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 pointer-events-none w-full max-w-xs px-4">
         <AnimatePresence mode="wait">
-          {started && (
+          {showing && (
             <motion.div
               key={currentIndex}
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
