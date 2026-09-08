@@ -605,7 +605,7 @@ export default function CheckInApp() {
                 tab === t ? "bg-[#0E281E] text-[#FBF9F4]" : "text-[#0E281E]/60"
               }`}
             >
-              {t === "search" ? "Search" : t === "scan" ? "Scan QR" : `Checked (${counts?.totalCheckedIn ?? "…"})`}
+              {t === "search" ? "Search" : t === "scan" ? "Scan QR" : `Checked (${catCount(category || "")?.checkedIn ?? "…"})`}
             </button>
           ))}
         </div>
