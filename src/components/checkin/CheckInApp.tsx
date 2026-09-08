@@ -124,7 +124,7 @@ export default function CheckInApp() {
 
   const loadCounts = useCallback(async () => {
     try {
-      const { res, data } = await api("/api/check-in/counts");
+      const { res, data } = await api(`/api/check-in/counts?t=${Date.now()}`);
       if (res.status === 401) {
         expired();
         return;
