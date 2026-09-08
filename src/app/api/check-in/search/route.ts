@@ -5,9 +5,6 @@ import { getSupabaseServer } from "@/lib/supabase";
 
 const GENERIC = "Something went wrong. Please try again.";
 
-// Search existing invitations, STRICTLY within the selected category.
-// Matches name (full/partial), phone, or invitation token — plus RSVP
-// reference numbers via the rsvps table. Never searches other categories.
 export async function GET(req: NextRequest) {
   try {
     if (!(await requireUsher())) {
@@ -20,7 +17,6 @@ export async function GET(req: NextRequest) {
     if (!isCheckinCategory(category)) {
       return NextResponse.json({ error: "Please select a guest category first." }, { status: 400 });
     }
-    // Strip LIKE wildcards so ushers can't widen the query.
     const q = rawQ.replace(/[%_,\\]/g, "").slice(0, 64);
     if (q.length < 2) {
       return NextResponse.json({ error: "Enter at least 2 characters to search." }, { status: 400 });
@@ -28,32 +24,44 @@ export async function GET(req: NextRequest) {
 
     const supabase = getSupabaseServer();
     const like = `%${q}%`;
-
-    // 1. Direct matches on the invitations table (category enforced in SQL).
-    const { data: direct, error: directErr } = await supabase
-      .from("invitations")
-      .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token, check_in_status, check_in_time")
-      .eq("rsvp_category", category)
-      .eq("is_active", true)
-      .or(`guest_name.ilike.${like},guest_contact.ilike.${like},invitation_token.ilike.${like}`)
-      .order("guest_name")
-      .limit(20);
-    if (directErr) {
-      console.error("check-in search error:", directErr);
-      return NextResponse.json({ error: GENERIC }, { status: 500 });
-    }
+    const cols = "id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token, check_in_status, check_in_time";
+    const base = () =>
+      supabase
+        .from("invitations")
+        .select(cols)
+        .eq("rsvp_category", category)
+        .eq("is_active", true);
 
     const byId = new Map<string, Record<string, unknown>>();
-    for (const g of direct || []) byId.set(g.id, { ...g });
+    const refByInvitation = new Map<string, string>();
 
-    // 2. Matches by RSVP reference number (GP-/BP-/AT-2026-XXXX).
+    // 1. Search by name
+    const { data: byName, error: e1 } = await base().ilike("guest_name", like).order("guest_name").limit(20);
+    if (e1) {
+      console.error("check-in search name error:", e1);
+      return NextResponse.json({ error: GENERIC }, { status: 500 });
+    }
+    for (const g of byName || []) byId.set(g.id, { ...g });
+
+    // 2. Search by phone
+    if (byId.size < 20) {
+      const { data: byPhone } = await base().ilike("guest_contact", like).limit(20);
+      for (const g of byPhone || []) if (!byId.has(g.id)) byId.set(g.id, { ...g });
+    }
+
+    // 3. Search by invitation token
+    if (byId.size < 20) {
+      const { data: byToken } = await base().ilike("invitation_token", like).limit(20);
+      for (const g of byToken || []) if (!byId.has(g.id)) byId.set(g.id, { ...g });
+    }
+
+    // 4. Search by RSVP reference number (GP-/BP-/AT-2026-XXXX)
     const { data: refs } = await supabase
       .from("rsvps")
       .select("invitation_id, reference_number")
       .ilike("reference_number", like)
       .limit(10);
     const refIds = [...new Set((refs || []).map((r) => r.invitation_id).filter(Boolean))] as string[];
-    const refByInvitation = new Map<string, string>();
     for (const r of refs || []) {
       if (r.invitation_id && r.reference_number) refByInvitation.set(r.invitation_id, r.reference_number);
     }
@@ -61,14 +69,14 @@ export async function GET(req: NextRequest) {
     if (missing.length > 0) {
       const { data: viaRef } = await supabase
         .from("invitations")
-        .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token, check_in_status, check_in_time")
+        .select(cols)
         .in("id", missing)
-        .eq("rsvp_category", category) // category enforced here too
+        .eq("rsvp_category", category)
         .eq("is_active", true);
-      for (const g of viaRef || []) byId.set(g.id, { ...g });
+      for (const g of viaRef || []) if (!byId.has(g.id)) byId.set(g.id, { ...g });
     }
 
-    // 3. Attach reference numbers for display.
+    // 5. Attach reference numbers for display
     const ids = [...byId.keys()];
     if (ids.length > 0) {
       const { data: codes } = await supabase

@@ -5,30 +5,36 @@ import { getSupabaseServer } from "@/lib/supabase";
 
 const GENERIC = "Something went wrong. Please try again.";
 
-// Live per-category counts straight from Supabase (never hardcoded).
 export async function GET() {
   try {
     if (!(await requireUsher())) {
       return NextResponse.json({ error: "Session expired. Please log in again." }, { status: 401 });
     }
     const supabase = getSupabaseServer();
-
     const results = await Promise.all(
       CHECKIN_CATEGORIES.map(async (c) => {
-        const [{ count: registered }, { count: checkedIn }] = await Promise.all([
-          supabase
-            .from("invitations")
-            .select("id", { count: "exact", head: true })
-            .eq("rsvp_category", c.value)
-            .eq("is_active", true),
-          supabase
+        // Count total registered guests in this category
+        const { count: registered } = await supabase
+          .from("invitations")
+          .select("id", { count: "exact", head: true })
+          .eq("rsvp_category", c.value)
+          .eq("is_active", true);
+
+        // Count checked-in guests (will be 0 if check_in columns don't exist yet)
+        let checkedIn = 0;
+        try {
+          const { count } = await supabase
             .from("invitations")
             .select("id", { count: "exact", head: true })
             .eq("rsvp_category", c.value)
             .eq("is_active", true)
-            .eq("check_in_status", "checked_in"),
-        ]);
-        return { category: c.value, registered: registered || 0, checkedIn: checkedIn || 0 };
+            .eq("check_in_status", "checked_in");
+          checkedIn = count || 0;
+        } catch {
+          // check_in columns don't exist yet — that's fine
+        }
+
+        return { category: c.value, registered: registered || 0, checkedIn };
       })
     );
 

@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUsher } from "@/lib/checkin-auth";
-import { isCheckinCategory } from "@/lib/checkin-categories";
 import { getSupabaseServer } from "@/lib/supabase";
 
 const GENERIC = "Something went wrong. Please try again.";
 
-// Fetch one guest for the detail screen. The selected category is
-// enforced server-side: wrong-category guests return 409 (mismatch),
-// never the record.
 export async function GET(req: NextRequest) {
   try {
     if (!(await requireUsher())) {
@@ -17,21 +13,36 @@ export async function GET(req: NextRequest) {
     const id = (searchParams.get("id") || "").trim();
     const category = searchParams.get("category") || "";
 
-    if (!id || !isCheckinCategory(category)) {
+    if (!id || !category) {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
 
     const supabase = getSupabaseServer();
-    const { data: invitation, error } = await supabase
+
+    // Try with check-in columns first; fall back if they don't exist.
+    let invitation: Record<string, unknown> | null = null;
+    const { data, error } = await supabase
       .from("invitations")
       .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token, check_in_status, check_in_time")
       .eq("id", id)
       .eq("is_active", true)
       .maybeSingle();
+
     if (error) {
-      console.error("check-in guest error:", error);
-      return NextResponse.json({ error: GENERIC }, { status: 500 });
+      // Fallback: query without check-in columns
+      const { data: fb } = await supabase
+        .from("invitations")
+        .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token")
+        .eq("id", id)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (fb) {
+        invitation = { ...fb, check_in_status: "not_checked_in", check_in_time: null };
+      }
+    } else {
+      invitation = data as Record<string, unknown>;
     }
+
     if (!invitation) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
@@ -58,8 +69,8 @@ export async function GET(req: NextRequest) {
         rsvpStatus: invitation.rsvp_status,
         attendance: rsvp?.attendance || null,
         code: rsvp?.reference_number || invitation.invitation_token,
-        checkInStatus: invitation.check_in_status,
-        checkInTime: invitation.check_in_time,
+        checkInStatus: invitation.check_in_status || "not_checked_in",
+        checkInTime: invitation.check_in_time || null,
       },
     });
   } catch (e) {
