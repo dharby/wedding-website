@@ -45,11 +45,11 @@ export default function Navigation() {
         initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.3 }}
-        className={`hidden md:flex fixed top-0 inset-x-0 z-50 justify-center transition-all duration-500 ${
-          scrolled
-            ? "bg-[#FBF9F4]/95 dark:bg-[#0E281E]/95 backdrop-blur-md border-b border-[#D1DCD3]/50 dark:border-[#C5A059]/30"
-            : "bg-transparent dark:bg-transparent"
-        }`}
+        className="hidden md:flex fixed top-0 inset-x-0 z-50 justify-center transition-all duration-500 backdrop-blur-md"
+        style={{
+          background: scrolled ? "rgba(251,249,244,0.95)" : "transparent",
+          borderBottom: scrolled ? "1px solid rgba(209,220,211,0.5)" : "none",
+        }}
       >
         <div className="flex items-center gap-8 py-4">
           {links.map((l) => (
@@ -70,11 +70,11 @@ export default function Navigation() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className={`md:hidden fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 py-3 transition-all duration-400 ${
-          scrolled
-            ? "bg-[#FBF9F4]/95 dark:bg-[#0E281E]/95 backdrop-blur-md border-b border-[#D1DCD3]/40 dark:border-[#C5A059]/30"
-            : "bg-transparent dark:bg-[#0E281E]"
-        }`}
+        className="md:hidden fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 py-3 transition-all duration-400 backdrop-blur-md"
+        style={{
+          background: scrolled ? "rgba(251,249,244,0.95)" : "transparent",
+          borderBottom: scrolled ? "1px solid rgba(209,220,211,0.4)" : "none",
+        }}
       >
         <button onClick={() => setOpen(true)} className="p-1" aria-label="Open menu">
           <svg className="w-5 h-5 text-emerald dark:text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

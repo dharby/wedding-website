@@ -29,17 +29,18 @@ export default function FloatingElements() {
   const [started, setStarted] = useState(false);
   const [floatingItems, setFloatingItems] = useState<Array<{ id: number; type: 'heart' | 'sparkle'; char: string; left: number; delay: number; duration: number }>>([]);
 
+  // Show first verse after 8s, then cycle every 25 seconds.
   useEffect(() => {
-    const initialTimeout = setTimeout(() => setStarted(true), 5000);
+    const initialTimeout = setTimeout(() => setStarted(true), 8000);
     return () => clearTimeout(initialTimeout);
   }, []);
 
-  // Shuffle to the next verse/wish every 20 seconds, indefinitely.
+  // Cycle every 25 seconds
   useEffect(() => {
     if (!started) return;
     const id = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % quotes.length);
-    }, 20000);
+    }, 25000);
     return () => clearInterval(id);
   }, [started]);
 
@@ -96,16 +97,16 @@ export default function FloatingElements() {
         ))}
       </div>
 
-      {/* Bible verse notification */}
-      <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none w-full max-w-sm px-4">
+      {/* Bible verse notification — positioned above the music button to avoid blocking hero content */}
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40 pointer-events-none w-full max-w-xs px-4">
         <AnimatePresence mode="wait">
           {started && (
             <motion.div
               key={currentIndex}
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
               className="bg-emerald dark:bg-emerald-deep/95 backdrop-blur-md px-5 py-3 rounded-lg shadow-lg border border-gold/30"
             >
               <div className="flex items-start gap-3">
