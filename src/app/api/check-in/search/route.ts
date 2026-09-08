@@ -3,6 +3,10 @@ import { requireUsher } from "@/lib/checkin-auth";
 import { isCheckinCategory } from "@/lib/checkin-categories";
 import { getSupabaseServer } from "@/lib/supabase";
 
+const GENERIC = "Something went wrong. Please try again.";
+const BASE_COLS = "id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token";
+const FULL_COLS = BASE_COLS + ", check_in_status, check_in_time";
+
 export async function GET(req: NextRequest) {
   try {
     if (!(await requireUsher())) {
@@ -21,32 +25,35 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = getSupabaseServer();
+    const like = `%${q}%`;
 
-    // Simple test: can we query at all?
-    const test = await supabase.from("invitations").select("id, guest_name").limit(3);
-    if (test.error) {
-      console.error("basic query error:", JSON.stringify(test.error));
-      return NextResponse.json({ error: "Database query failed.", detail: test.error.message }, { status: 500 });
-    }
-
-    // Actual search by name (case-insensitive)
-    const { data, error } = await supabase
+    // Try with full columns first; fall back if check-in columns don't exist.
+    let cols = FULL_COLS;
+    const probe = await supabase
       .from("invitations")
-      .select("id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token, check_in_status, check_in_time")
+      .select(cols)
       .eq("rsvp_category", category)
       .eq("is_active", true)
-      .ilike("guest_name", `%${q}%`)
+      .limit(1);
+    if (probe.error && String(probe.error.message).includes("check_in_status")) {
+      cols = BASE_COLS;
+    }
+
+    const { data, error } = await supabase
+      .from("invitations")
+      .select(cols)
+      .eq("rsvp_category", category)
+      .eq("is_active", true)
+      .ilike("guest_name", like)
       .order("guest_name")
       .limit(20);
 
     if (error) {
-      console.error("search error:", JSON.stringify(error));
-      return NextResponse.json({ error: "Search failed.", detail: error.message }, { status: 500 });
+      console.error("search by name error:", error);
+      return NextResponse.json({ error: GENERIC }, { status: 500 });
     }
 
     const refByInvitation = new Map<string, string>();
-
-    // Attach RSVP reference numbers
     const ids = (data || []).map((g) => g.id);
     if (ids.length > 0) {
       const { data: codes } = await supabase
@@ -71,7 +78,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ guests });
   } catch (e) {
-    console.error("search exception:", e);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    console.error("check-in search failed:", e);
+    return NextResponse.json({ error: GENERIC }, { status: 500 });
   }
 }
