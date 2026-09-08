@@ -44,21 +44,8 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: GENERIC }, { status: 500 });
       }
       rows = data || [];
-    } else {
-      // Fallback: use rsvp_status = accepted as proxy
-      let query = supabase
-        .from("invitations")
-        .select(cols)
-        .eq("is_active", true)
-        .eq("rsvp_status", "accepted");
-      if (categoryFilter) query = query.eq("rsvp_category", categoryFilter);
-      const { data, error } = await query.order("guest_name");
-      if (error) {
-        console.error("all checked-in fallback query error:", error);
-        return NextResponse.json({ error: GENERIC }, { status: 500 });
-      }
-      rows = data || [];
     }
+    // If check_in columns don't exist, rows stays empty (no check-ins yet)
 
     // Search filter
     if (q.length >= 2) {

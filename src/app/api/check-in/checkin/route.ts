@@ -51,13 +51,9 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
-      // No check-in columns → use rsvp_status as proxy
-      if (fb.rsvp_status === "accepted") {
-        return NextResponse.json({
-          already: true,
-          guest: { ...fb, category: fb.rsvp_category, checkInStatus: "checked_in", checkInTime: null, code: null },
-        });
-      }
+      // No check-in columns — just mark as accepted (check-in action).
+      // Don't check rsvp_status here: "accepted" means they RSVP'd yes,
+      // not that they arrived. The usher is confirming physical arrival.
       const { error: updErr } = await supabase
         .from("invitations")
         .update({ rsvp_status: "accepted" })

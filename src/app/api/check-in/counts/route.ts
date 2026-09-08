@@ -32,18 +32,9 @@ export async function GET() {
           if (ciErr) throw ciErr;
           checkedIn = count || 0;
         } catch {
-          // check_in columns don't exist — fall back to rsvp_status = accepted
-          try {
-            const { count: fbCount } = await supabase
-              .from("invitations")
-              .select("id", { count: "exact", head: true })
-              .eq("rsvp_category", c.value)
-              .eq("is_active", true)
-              .eq("rsvp_status", "accepted");
-            checkedIn = fbCount || 0;
-          } catch {
-            // keep 0
-          }
+          // check_in columns don't exist yet — checked-in count is 0
+          // (rsvp_status=accepted means they RSVP'd yes, not that they arrived)
+          checkedIn = 0;
         }
 
         return { category: c.value, registered: registered || 0, checkedIn };
