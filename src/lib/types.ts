@@ -49,7 +49,7 @@ export async function submitRSVP(data: Omit<RSVPRecord, "id" | "reference_number
       meal_preference: data.meal_preference,
       message: data.message,
     })
-    .select("reference_number")
+    .select("id, reference_number")
     .single();
 
   if (error) {
@@ -57,7 +57,7 @@ export async function submitRSVP(data: Omit<RSVPRecord, "id" | "reference_number
     return { success: false, error: error.message };
   }
 
-  return { success: true, reference_number: result.reference_number };
+  return { success: true, rsvp_id: result.id, reference_number: result.reference_number };
 }
 
 export async function submitGiftConfirmation(data: Omit<GiftConfirmation, "id" | "confirmed_at">) {
