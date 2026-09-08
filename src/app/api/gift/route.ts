@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
       sender_contact,
     });
 
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

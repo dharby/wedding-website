@@ -121,10 +121,10 @@ export default function EnvelopeOpening({ onOpen }: EnvelopeOpeningProps) {
           transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="text-center mb-6 md:mb-8"
         >
-          <p className="text-[0.6rem] sm:text-[0.65rem] uppercase tracking-[0.35em] text-emerald/90 font-sans mb-3">
+          <p className="text-[0.6rem] sm:text-[0.65rem] uppercase tracking-[0.35em] text-gold font-sans mb-3">
             You&apos;re Invited
           </p>
-          <h1 className="text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] font-serif text-emerald dark:text-cream leading-[1.1]">
+          <h1 className="text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] font-serif leading-[1.1]" style={{ color: isDark ? "#FBF9F4" : "#0E281E" }}>
             Anuoluwapo & Tochukwu
           </h1>
           <div className="mt-4 flex items-center justify-center gap-3">
@@ -218,7 +218,7 @@ export default function EnvelopeOpening({ onOpen }: EnvelopeOpeningProps) {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={showText ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
                     transition={{ delay: 0.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    className="text-[1.5rem] sm:text-[1.9rem] md:text-[2.2rem] font-script text-emerald leading-[1.15] mb-1"
+                    className="text-[1.5rem] sm:text-[1.9rem] md:text-[2.2rem] font-script leading-[1.15] mb-1" style={{ color: isDark ? "#FBF9F4" : "#0E281E" }}
                   >
                     Anuoluwapo
                   </motion.h2>
@@ -234,7 +234,7 @@ export default function EnvelopeOpening({ onOpen }: EnvelopeOpeningProps) {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={showText ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
                     transition={{ delay: 0.9, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    className="text-[1.5rem] sm:text-[1.9rem] md:text-[2.2rem] font-script text-emerald leading-[1.15] mb-3"
+                    className="text-[1.5rem] sm:text-[1.9rem] md:text-[2.2rem] font-script leading-[1.15] mb-3" style={{ color: isDark ? "#FBF9F4" : "#0E281E" }}
                   >
                     Tochukwu
                   </motion.h2>
@@ -386,7 +386,7 @@ export default function EnvelopeOpening({ onOpen }: EnvelopeOpeningProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: phase === "ready" ? 1 : 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-5 sm:mt-6 text-[0.55rem] sm:text-[0.6rem] uppercase tracking-[0.3em] text-emerald/80 font-sans select-none"
+          className="mt-5 sm:mt-6 text-[0.55rem] sm:text-[0.6rem] uppercase tracking-[0.3em] text-emerald/80 dark:text-gold/80 font-sans select-none"
         >
           Tap to Open
         </motion.p>
@@ -398,7 +398,7 @@ export default function EnvelopeOpening({ onOpen }: EnvelopeOpeningProps) {
           transition={{ duration: 0.6, delay: 1.2 }}
           whileHover={{ opacity: 1 }}
           onClick={handleSkip}
-          className="mt-3 text-[0.5rem] sm:text-[0.55rem] uppercase tracking-[0.25em] text-emerald/80 dark:text-cream/40 font-sans hover:text-emerald/90 dark:hover:text-cream/60 transition-colors"
+          className="mt-3 text-[0.5rem] sm:text-[0.55rem] uppercase tracking-[0.25em] text-emerald/80 dark:text-gold/60 font-sans hover:text-emerald/90 dark:hover:text-gold/80 transition-colors"
         >
           Skip Intro
         </motion.button>

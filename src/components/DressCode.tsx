@@ -42,7 +42,7 @@ export default function DressCode() {
             <span className="w-10 h-px bg-gold/30" />
           </div>
           <p className="text-[0.85rem] sm:text-[0.9rem] text-ink-muted dark:text-cream/60 font-sans max-w-lg mx-auto leading-relaxed">
-            Join us in celebrating with these beautiful colors. Traditional Nigerian attire or formal wear in the wedding color palette is appreciated.
+            We kindly request all guests to dress in traditional Nigerian attire. Please wear colors from our wedding palette: Emerald Green, Antique Gold, or Sage Green.
           </p>
         </motion.div>
 
@@ -70,7 +70,6 @@ export default function DressCode() {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"
                 onError={(e) => {
-                  // Fallback if image doesn't exist
                   e.currentTarget.style.display = 'none';
                 }}
               />
@@ -79,20 +78,19 @@ export default function DressCode() {
           ))}
         </motion.div>
 
-        {/* Color swatches */}
+        {/* Color swatches - Emerald, Antique Gold, Sage Green only */}
         <motion.div
           custom={2}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={reveal}
-          className="grid grid-cols-4 gap-3 sm:gap-6 mb-10"
+          className="grid grid-cols-3 gap-3 sm:gap-6 mb-10 max-w-lg mx-auto"
         >
           {[
-            { name: "Emerald Green", hex: "#0E281E", desc: "Rich and elegant for a timeless celebration." },
+            { name: "Emerald Green", hex: "#0E281E", desc: "Rich and elegant." },
             { name: "Antique Gold", hex: "#B8860B", desc: "Warm metallic sophistication." },
             { name: "Sage Green", hex: "#4A6B53", desc: "Soft botanical elegance." },
-            { name: "Cream", hex: "#FBF9F4", desc: "Classic neutral base." },
           ].map((c, i) => (
             <div key={c.hex} className="text-center group">
               <motion.div
@@ -128,10 +126,10 @@ export default function DressCode() {
             Dress Code
           </p>
           <p className="text-[0.9rem] sm:text-[0.95rem] font-serif text-emerald dark:text-cream font-medium mb-1">
-            Emerald Green, Gold & Sage
+            Strictly Traditional
           </p>
           <p className="text-[0.75rem] sm:text-[0.8rem] text-ink-muted/60 dark:text-cream/50 font-sans">
-            Traditional Nigerian attire or formal/semi-formal in the wedding color palette
+            Traditional Nigerian attire in Emerald Green, Antique Gold, or Sage Green
           </p>
         </motion.div>
       </div>

@@ -5,7 +5,7 @@ export interface Invitation {
   invitation_token: string;
   guest_name: string;
   guest_contact: string;
-  allowed_guests: number; // Always 1 for this wedding
+  allowed_guests: number;
   rsvp_status: "pending" | "accepted" | "declined";
   rsvp_id: string | null;
   is_active: boolean;
@@ -15,12 +15,12 @@ export interface Invitation {
 
 export interface RSVPRecord {
   id: string;
-  reference_number: string; // AT-2026-XXXX
+  reference_number: string;
   invitation_id: string | null;
   guest_name: string;
   guest_contact: string;
   attendance: "yes" | "no";
-  guest_count: number; // Always 1
+  guest_count: number;
   meal_preference: string | null;
   message: string | null;
   created_at: string;
@@ -34,42 +34,64 @@ export interface GiftConfirmation {
   confirmed_at: string;
 }
 
-// Mock data for development
-export const mockInvitations: Invitation[] = [
-  {
-    id: "inv-001",
-    invitation_token: "tok_abc123def456",
-    guest_name: "Adaeze Okonkwo",
-    guest_contact: "adaeze@email.com",
-    allowed_guests: 1,
-    rsvp_status: "pending",
-    rsvp_id: null,
-    is_active: true,
-    created_at: "2026-01-15T10:00:00Z",
-    updated_at: "2026-01-15T10:00:00Z",
-  },
-];
-
-export const mockRSVPs: RSVPRecord[] = [];
-
-export const mockGifts: GiftConfirmation[] = [];
-
-// Simulated API functions (replace with Supabase calls)
 export async function submitRSVP(data: Omit<RSVPRecord, "id" | "reference_number" | "created_at">) {
-  // In production: await supabase.from('rsvps').insert(data)
-  const refNum = `AT-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-  console.log("RSVP submitted:", { ...data, reference_number: refNum });
-  return { success: true, reference_number: refNum };
+  const { getSupabaseServer } = await import("@/lib/supabase");
+  const supabase = getSupabaseServer();
+
+  const { data: result, error } = await supabase
+    .from("rsvps")
+    .insert({
+      invitation_id: data.invitation_id,
+      guest_name: data.guest_name,
+      guest_contact: data.guest_contact,
+      attendance: data.attendance,
+      guest_count: Math.min(data.guest_count || 1, 1),
+      meal_preference: data.meal_preference,
+      message: data.message,
+    })
+    .select("reference_number")
+    .single();
+
+  if (error) {
+    console.error("RSVP insert error:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, reference_number: result.reference_number };
 }
 
 export async function submitGiftConfirmation(data: Omit<GiftConfirmation, "id" | "confirmed_at">) {
-  // In production: await supabase.from('gift_confirmations').insert(data)
-  console.log("Gift confirmation:", data);
+  const { getSupabaseServer } = await import("@/lib/supabase");
+  const supabase = getSupabaseServer();
+
+  const { error } = await supabase.from("gift_confirmations").insert({
+    invitation_id: data.invitation_id,
+    sender_name: data.sender_name,
+    sender_contact: data.sender_contact,
+  });
+
+  if (error) {
+    console.error("Gift insert error:", error);
+    return { success: false, error: error.message };
+  }
+
   return { success: true };
 }
 
 export async function validateInvitationToken(token: string) {
-  // In production: await supabase.from('invitations').select('*').eq('invitation_token', token).eq('is_active', true).single()
-  const invitation = mockInvitations.find((inv) => inv.invitation_token === token && inv.is_active);
-  return invitation || null;
+  const { getSupabaseServer } = await import("@/lib/supabase");
+  const supabase = getSupabaseServer();
+
+  const { data: invitation, error } = await supabase
+    .from("invitations")
+    .select("*")
+    .eq("invitation_token", token)
+    .eq("is_active", true)
+    .single();
+
+  if (error || !invitation) {
+    return null;
+  }
+
+  return invitation as Invitation;
 }

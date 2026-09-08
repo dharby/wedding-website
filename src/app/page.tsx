@@ -18,6 +18,7 @@ import GiftRegistry from "@/components/GiftRegistry";
 import FAQ from "@/components/FAQ";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import FloatingElements from "@/components/FloatingElements";
 import { useTheme } from "@/lib/ThemeContext";
 
 function ThemeToggle() {
@@ -45,9 +46,21 @@ function ThemeToggle() {
 function MusicToggle() {
   const [playing, setPlaying] = useState(false);
 
+  const toggleMusic = () => {
+    const audio = document.getElementById('wedding-music') as HTMLAudioElement;
+    if (audio) {
+      if (playing) {
+        audio.pause();
+      } else {
+        audio.play().catch(() => {});
+      }
+      setPlaying(!playing);
+    }
+  };
+
   return (
     <button
-      onClick={() => setPlaying(!playing)}
+      onClick={toggleMusic}
       className="fixed bottom-5 right-5 z-40 w-9 h-9 rounded-full bg-emerald/80 backdrop-blur-sm flex items-center justify-center text-cream/80 hover:text-cream hover:bg-emerald transition-all duration-300 md:bottom-8 md:right-8"
       aria-label={playing ? "Pause music" : "Play music"}
     >
@@ -74,7 +87,7 @@ function MusicPlayer() {
     const audio = document.getElementById('wedding-music') as HTMLAudioElement;
     if (playing) {
       audio.currentTime = 0;
-      audio.play();
+      audio.play().catch(() => {});
     } else {
       audio.pause();
     }
@@ -83,7 +96,7 @@ function MusicPlayer() {
   return (
     <audio
       id="wedding-music"
-      src="/music/this-is-why-i-love-you-major.mp3"
+      src="/music/MAJOR._-_Why_I_Love_You_(mp3.pm).mp3"
       style={{ display: 'none' }}
       autoPlay={false}
       loop
@@ -127,42 +140,67 @@ export default function Home() {
           <ThemeToggle />
           <MusicToggle />
           <MusicPlayer />
+          <FloatingElements />
 
           <div id="home">
             <Hero />
           </div>
 
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
           <FamilyInvitation />
+
+          <div className="w-24 mx-auto border-t border-gold/30" />
 
           <div id="story">
             <OurStory />
           </div>
 
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
           <WeddingDetails />
 
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
           <Countdown />
+
+          <div className="w-24 mx-auto border-t border-gold/30" />
 
           <div id="dresscode">
             <DressCode />
           </div>
 
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
           <Gallery />
+
+          <div className="w-24 mx-auto border-t border-gold/30" />
 
           <div id="asoebi">
             <AsoEbi />
           </div>
 
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
           <div id="registry">
             <GiftRegistry />
           </div>
+
+          <div className="w-24 mx-auto border-t border-gold/30" />
 
           <div id="faq">
             <FAQ />
           </div>
 
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
           <RSVP />
 
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
           <RSVPContacts />
+
+          <div className="w-24 mx-auto border-t border-gold/30" />
 
           <div id="contact">
             <Contact />

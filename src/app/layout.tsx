@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   description:
     "Join us as we celebrate the wedding of Anuoluwapo Adeoye and Tochukwu Ekwubiri on Saturday, November 28th, 2026 at Amen Center, Lagos, Nigeria.",
   keywords: ["wedding", "Nigerian wedding", "Anuoluwapo", "Tochukwu", "2026", "Lagos", "Adeoye", "Ekwubiri"],
+  icons: {
+    icon: "/favicon.svg",
+  },
   openGraph: {
     title: "Anuoluwapo & Tochukwu | Wedding Celebration",
     description: "Saturday, November 28th, 2026 — Amen Center, Lagos",

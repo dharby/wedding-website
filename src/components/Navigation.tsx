@@ -18,8 +18,15 @@ export default function Navigation() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  const [showRSVP, setShowRSVP] = useState(false);
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 60);
+      // Hide RSVP button when near bottom (footer area)
+      const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
+      setShowRSVP(!nearBottom && window.scrollY > 300);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -39,7 +46,9 @@ export default function Navigation() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.3 }}
         className={`hidden md:flex fixed top-0 inset-x-0 z-50 justify-center transition-all duration-500 ${
-          scrolled ? "bg-cream/90 backdrop-blur-md border-b border-sage-border/50" : "bg-transparent"
+          scrolled 
+            ? "bg-cream/90 dark:bg-emerald/95 backdrop-blur-md border-b border-sage-border/50 dark:border-gold/30" 
+            : "bg-transparent"
         }`}
       >
         <div className="flex items-center gap-8 py-4">
@@ -62,7 +71,7 @@ export default function Navigation() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
         className={`md:hidden fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 py-3 transition-all duration-400 ${
-          scrolled ? "bg-cream/90 backdrop-blur-md border-b border-sage-border/40" : "bg-transparent"
+          scrolled ? "bg-cream/90 dark:bg-emerald/95 backdrop-blur-md border-b border-sage-border/40 dark:border-gold/30" : "bg-transparent"
         }`}
       >
         <button onClick={() => setOpen(true)} className="p-1" aria-label="Open menu">
@@ -75,17 +84,20 @@ export default function Navigation() {
       </motion.div>
 
       {/* Mobile sticky RSVP button */}
-      <div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40">
-        <motion.button
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 1, duration: 0.6 }}
-          onClick={() => nav("#rsvp")}
-          className="h-10 px-5 bg-emerald text-cream text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans font-medium border border-gold/30 rounded-[3px] shadow-lg shadow-emerald/20 transition-all duration-400 hover:bg-emerald-mid"
-        >
-          RSVP
-        </motion.button>
-      </div>
+      {showRSVP && (
+        <div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40">
+          <motion.button
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 40, opacity: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            onClick={() => nav("#rsvp")}
+            className="h-10 px-5 bg-emerald text-cream text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans font-medium border border-gold/30 rounded-[3px] shadow-lg shadow-emerald/20 transition-all duration-400 hover:bg-emerald-mid"
+          >
+            RSVP
+          </motion.button>
+        </div>
+      )}
 
       {/* Mobile menu overlay */}
       <AnimatePresence>
@@ -104,12 +116,12 @@ export default function Navigation() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed top-0 left-0 bottom-0 w-72 z-[70] bg-cream border-r border-sage-border/50 md:hidden"
+              className="fixed top-0 left-0 bottom-0 w-72 z-[70] bg-cream dark:bg-emerald border-r border-sage-border/50 dark:border-emerald-soft/30 md:hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-sage-border/30">
-                <span className="text-[1rem] font-script text-emerald">A&T</span>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-sage-border/30 dark:border-emerald-soft/20">
+                <span className="text-[1rem] font-script text-emerald dark:text-cream">A&T</span>
                 <button onClick={() => setOpen(false)} className="p-1" aria-label="Close menu">
-                  <svg className="w-5 h-5 text-emerald" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-5 h-5 text-emerald dark:text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -122,7 +134,7 @@ export default function Navigation() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, duration: 0.4 }}
                     onClick={() => nav(l.href)}
-                    className="text-left py-3 text-[0.65rem] sm:text-[0.7rem] uppercase tracking-[0.18em] font-sans text-ink-soft/70 hover:text-emerald border-b border-sage-border/20 transition-colors"
+                    className="text-left py-3 text-[0.65rem] sm:text-[0.7rem] uppercase tracking-[0.18em] font-sans text-ink-soft dark:text-cream hover:text-gold border-b border-sage-border/20 dark:border-emerald-soft/20 transition-colors"
                   >
                     {l.name}
                   </motion.button>
