@@ -299,3 +299,7 @@ button:hover, input[type="submit"]:hover {
 .dark .text-ink-muted { color: #A8B8A8; }
 .dark .text-emerald { color: #FBF9F4; }
 .dark .text-emerald-soft { color: #A8B8A8; }
+
+/* Hide scrollbar for thumbnail strip */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

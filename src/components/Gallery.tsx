@@ -1,28 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const photos = [
-  { id: 1, label: "Engagement", span: "col-span-1 row-span-2" },
-  { id: 2, label: "Portrait", span: "col-span-1 row-span-1" },
-  { id: 3, label: "Together", span: "col-span-1 row-span-1" },
-  { id: 4, label: "Pre-Wedding", span: "col-span-1 row-span-2" },
-  { id: 5, label: "Moments", span: "col-span-1 row-span-1" },
-  { id: 6, label: "Celebration", span: "col-span-1 row-span-1" },
+  { id: 1, src: "/images/couple-01.jpg" },
+  { id: 2, src: "/images/couple-02.jpg" },
+  { id: 3, src: "/images/couple-03.jpg" },
+  { id: 4, src: "/images/couple-04.jpg" },
+  { id: 5, src: "/images/couple-05.jpg" },
+  { id: 6, src: "/images/couple-06.jpg" },
+  { id: 7, src: "/images/couple-07.jpg" },
+  { id: 8, src: "/images/couple-08.jpg" },
+  { id: 9, src: "/images/couple-09.jpg" },
+  { id: 10, src: "/images/couple-10.jpg" },
+  { id: 11, src: "/images/couple-11.jpg" },
+  { id: 12, src: "/images/couple-12.jpg" },
+  { id: 13, src: "/images/couple-13.jpg" },
+  { id: 14, src: "/images/couple-14.jpg" },
+  { id: 15, src: "/images/couple-15.jpg" },
+  { id: 16, src: "/images/couple-16.jpg" },
+  { id: 17, src: "/images/couple-17.jpg" },
+  { id: 18, src: "/images/couple-18.jpg" },
+  { id: 19, src: "/images/couple-19.jpg" },
+  { id: 20, src: "/images/couple-20.jpg" },
 ];
 
 export default function Gallery() {
-  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [direction, setDirection] = useState(1);
+  const stripRef = useRef<HTMLDivElement>(null);
 
-  const currentIdx = lightbox !== null ? photos.findIndex((p) => p.id === lightbox) : -1;
+  const goTo = useCallback((idx: number) => {
+    setDirection(idx > current ? 1 : -1);
+    setCurrent(idx);
+  }, [current]);
 
-  const navigate = (dir: "prev" | "next") => {
-    if (currentIdx === -1) return;
-    const next = dir === "next"
-      ? (currentIdx + 1) % photos.length
-      : (currentIdx - 1 + photos.length) % photos.length;
-    setLightbox(photos[next].id);
+  const next = useCallback(() => {
+    setDirection(1);
+    setCurrent((prev) => (prev + 1) % photos.length);
+  }, []);
+
+  const prev = useCallback(() => {
+    setDirection(-1);
+    setCurrent((prev) => (prev - 1 + photos.length) % photos.length);
+  }, []);
+
+  // Auto-advance
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(next, 5000);
+    return () => clearInterval(id);
+  }, [paused, next]);
+
+  // Scroll thumbnail into view
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const thumb = strip.children[current] as HTMLElement;
+    if (thumb) {
+      thumb.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [current]);
+
+  const slideVariants = {
+    enter: (d: number) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d > 0 ? "-100%" : "100%", opacity: 0 }),
   };
 
   return (
@@ -48,95 +93,89 @@ export default function Gallery() {
           </div>
         </motion.div>
 
-        {/* Masonry grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 auto-rows-[8rem] sm:auto-rows-[10rem]">
-          {photos.map((photo, i) => (
-            <motion.div
-              key={photo.id}
-              initial={{ opacity: 0, scale: 1.04 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.7 }}
-              className={`${photo.span} relative overflow-hidden rounded-[2px] bg-sage-light cursor-pointer group`}
-              onClick={() => setLightbox(photo.id)}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-sage-light via-cream to-sage-border/20 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/40 font-sans uppercase tracking-wider group-hover:text-ink-muted/60 transition-colors">
-                  {photo.label}
-                </span>
-              </div>
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-emerald/0 group-hover:bg-emerald/[0.04] transition-colors duration-500" />
-            </motion.div>
-          ))}
-        </div>
+        {/* Main carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {/* Image container */}
+          <div className="relative w-full aspect-[3/4] sm:aspect-[4/5] max-h-[70vh] overflow-hidden rounded-[2px] bg-emerald/5">
+            <AnimatePresence custom={direction} mode="popLayout">
+              <motion.img
+                key={current}
+                src={photos[current].src}
+                alt=""
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+                className="absolute inset-0 w-full h-full object-cover"
+                draggable={false}
+              />
+            </AnimatePresence>
 
-        <p className="text-center mt-6 text-[0.45rem] sm:text-[0.7rem] text-ink-muted/40 font-sans uppercase tracking-wider">
-          Photos coming soon
-        </p>
-      </div>
+            {/* Gradient overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald/20 via-transparent to-transparent pointer-events-none" />
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {lightbox !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[100] bg-emerald/95 flex items-center justify-center"
-            onClick={() => setLightbox(null)}
-          >
-            {/* Close */}
+            {/* Nav arrows */}
             <button
-              onClick={() => setLightbox(null)}
-              className="absolute top-5 right-5 text-cream/60 hover:text-cream text-2xl z-10 w-10 h-10 flex items-center justify-center"
-              aria-label="Close lightbox"
-            >
-              ×
-            </button>
-
-            {/* Prev */}
-            <button
-              onClick={(e) => { e.stopPropagation(); navigate("prev"); }}
-              className="absolute left-3 sm:left-6 text-cream/50 hover:text-cream text-3xl z-10 w-10 h-10 flex items-center justify-center"
+              onClick={prev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-cream/80 dark:bg-emerald/80 backdrop-blur-sm flex items-center justify-center text-emerald dark:text-cream hover:bg-cream dark:hover:bg-emerald transition-colors shadow-lg"
               aria-label="Previous photo"
             >
-              ‹
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
-
-            {/* Next */}
             <button
-              onClick={(e) => { e.stopPropagation(); navigate("next"); }}
-              className="absolute right-3 sm:right-6 text-cream/50 hover:text-cream text-3xl z-10 w-10 h-10 flex items-center justify-center"
+              onClick={next}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-cream/80 dark:bg-emerald/80 backdrop-blur-sm flex items-center justify-center text-emerald dark:text-cream hover:bg-cream dark:hover:bg-emerald transition-colors shadow-lg"
               aria-label="Next photo"
             >
-              ›
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
             </button>
 
-            {/* Image area */}
-            <motion.div
-              key={lightbox}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-[85vw] max-w-2xl aspect-[4/3] bg-cream/10 rounded-[2px] flex items-center justify-center"
-            >
-              <span className="text-cream/40 text-[0.8rem] sm:text-[0.85rem] font-sans uppercase tracking-wider">
-                {photos[currentIdx]?.label} — Photo {photos[currentIdx]?.id}
-              </span>
-            </motion.div>
-
             {/* Counter */}
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-cream/40 text-[0.7rem] sm:text-[0.75rem] font-sans">
-              {currentIdx + 1} / {photos.length}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald/60 backdrop-blur-sm text-cream text-[0.65rem] font-sans tracking-wider">
+              {current + 1} / {photos.length}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+
+          {/* Thumbnail strip */}
+          <div
+            ref={stripRef}
+            className="mt-3 flex gap-1.5 overflow-x-auto scrollbar-hide pb-1"
+          >
+            {photos.map((photo, i) => (
+              <button
+                key={photo.id}
+                onClick={() => goTo(i)}
+                className={`shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-[2px] overflow-hidden border-2 transition-all duration-300 ${
+                  i === current
+                    ? "border-gold opacity-100 scale-105"
+                    : "border-transparent opacity-50 hover:opacity-80"
+                }`}
+              >
+                <img
+                  src={photo.src}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  draggable={false}
+                />
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }
