@@ -8,6 +8,7 @@ const links = [
   { name: "Our Story", href: "#story" },
   { name: "Wedding", href: "#details" },
   { name: "Dress Code", href: "#dresscode" },
+  { name: "Captured Moments", href: "#gallery" },
   { name: "Aso Ebi", href: "#asoebi" },
   { name: "Gift", href: "#registry" },
   { name: "FAQ", href: "#faq" },

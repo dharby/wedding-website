@@ -54,13 +54,15 @@ export default function Gallery() {
     return () => clearInterval(id);
   }, [paused, next]);
 
-  // Scroll thumbnail into view
+  // Scroll thumbnail into view (only within the strip, not the page)
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
     const thumb = strip.children[current] as HTMLElement;
     if (thumb) {
-      thumb.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      const thumbCenter = thumb.offsetLeft + thumb.offsetWidth / 2;
+      const stripCenter = strip.offsetWidth / 2;
+      strip.scrollTo({ left: thumbCenter - stripCenter, behavior: "smooth" });
     }
   }, [current]);
 
