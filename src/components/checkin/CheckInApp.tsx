@@ -11,7 +11,7 @@ import {
 const QrScanner = dynamic(() => import("@/components/checkin/QrScanner"), { ssr: false });
 
 type Screen = "loading" | "login" | "categories" | "desk" | "allchecked";
-type DeskTab = "search" | "scan" | "checked";
+type DeskTab = "search" | "scan" | "checked" | "manual";
 
 interface Guest {
   id: string;
@@ -95,6 +95,12 @@ export default function CheckInApp() {
   const [checkedTotal, setCheckedTotal] = useState(0);
   const [checkedQuery, setCheckedQuery] = useState("");
   const [checkedLoading, setCheckedLoading] = useState(false);
+
+  const [manualName, setManualName] = useState("");
+  const [manualContact, setManualContact] = useState("");
+  const [manualCategory, setManualCategory] = useState<CheckinCategory | null>(null);
+  const [manualBusy, setManualBusy] = useState(false);
+  const [manualError, setManualError] = useState("");
 
   const goLogin = useCallback(() => {
     setScreen("login");
@@ -322,6 +328,38 @@ export default function CheckInApp() {
       setOverlay({ kind: "notfound", message: "Something went wrong. Please try again." });
     } finally {
       setCheckingIn(false);
+    }
+  };
+
+  const doManualCheckIn = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!category || !manualName.trim() || manualBusy) return;
+    setManualBusy(true);
+    setManualError("");
+    try {
+      const { res, data } = await api("/api/check-in/manual-checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: manualName.trim(), category, contact: manualContact.trim() }),
+      });
+      if (res.status === 401) {
+        expired();
+        return;
+      }
+      if (!res.ok) {
+        setManualError(data.error || "Something went wrong. Please try again.");
+        return;
+      }
+      const g: Guest = data.guest;
+      setOverlay({ kind: "success", guest: g, time: g.checkInTime });
+      loadCounts();
+      setManualName("");
+      setManualContact("");
+      setManualCategory(null);
+    } catch {
+      setManualError("Something went wrong. Please try again.");
+    } finally {
+      setManualBusy(false);
     }
   };
 
@@ -585,12 +623,13 @@ export default function CheckInApp() {
       {/* Tabs */}
       <div className="px-5 pt-4 max-w-md mx-auto w-full">
         <div className="grid grid-cols-3 gap-1.5 p-1 rounded-lg bg-[#0E281E]/5 border border-[#0E281E]/10">
-          {(["search", "scan", "checked"] as DeskTab[]).map((t) => (
+          {(["search", "scan", "checked", "manual"] as DeskTab[]).map((t) => (
             <button
               key={t}
               onClick={() => {
                 setTab(t);
                 setOverlay(null);
+                setDetail(null);
                 if (t === "scan") {
                   handledScan.current = null;
                   setCameraBlocked(false);
@@ -605,7 +644,7 @@ export default function CheckInApp() {
                 tab === t ? "bg-[#0E281E] text-[#FBF9F4]" : "text-[#0E281E]/60"
               }`}
             >
-              {t === "search" ? "Search" : t === "scan" ? "Scan QR" : `Checked (${catCount(category || "")?.checkedIn ?? "…"})`}
+              {t === "search" ? "Search" : t === "scan" ? "Scan QR" : t === "checked" ? `Checked (${catCount(category || "")?.checkedIn ?? "…"})` : "Manual"}
             </button>
           ))}
         </div>
@@ -754,6 +793,79 @@ export default function CheckInApp() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {tab === "manual" && !detail && (
+          <div>
+            <form onSubmit={doManualCheckIn} className="space-y-4">
+              <div>
+                <label htmlFor="manual-name" className="block text-sm font-medium text-[#0E281E]/70 mb-1">
+                  Guest Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="manual-name"
+                  type="text"
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  placeholder="Enter guest's full name"
+                  className={inputCls}
+                  maxLength={100}
+                  required
+                  disabled={manualBusy}
+                />
+              </div>
+              <div>
+                <label htmlFor="manual-contact" className="block text-sm font-medium text-[#0E281E]/70 mb-1">
+                  Phone / Email (optional)
+                </label>
+                <input
+                  id="manual-contact"
+                  type="text"
+                  value={manualContact}
+                  onChange={(e) => setManualContact(e.target.value)}
+                  placeholder="e.g., 08012345678 or guest@email.com"
+                  className={inputCls}
+                  maxLength={50}
+                  disabled={manualBusy}
+                />
+              </div>
+              <div>
+                <label htmlFor="manual-category" className="block text-sm font-medium text-[#0E281E]/70 mb-1">
+                  Host Category <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="manual-category"
+                  value={manualCategory || ""}
+                  onChange={(e) => setManualCategory(e.target.value as CheckinCategory)}
+                  className={inputCls}
+                  disabled={manualBusy}
+                  required
+                >
+                  <option value="">Select host category</option>
+                  {CHECKIN_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {manualError && (
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-4 py-3">
+                  {manualError}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={manualBusy || !manualName.trim() || !manualCategory}
+                className="w-full h-14 rounded-md bg-[#0E281E] text-[#FBF9F4] text-sm uppercase tracking-[0.2em] font-medium border border-[#C5A059]/40 disabled:opacity-60 touch-manipulation active:scale-[0.99]"
+              >
+                {manualBusy ? "Checking in…" : "Check in guest manually"}
+              </button>
+            </form>
+            <p className="mt-4 text-center text-xs text-[#0E281E]/50">
+              Use this for guests with physical access cards not in the digital system
+            </p>
           </div>
         )}
 
