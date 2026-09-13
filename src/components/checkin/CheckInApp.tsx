@@ -98,7 +98,6 @@ export default function CheckInApp() {
 
   const [manualName, setManualName] = useState("");
   const [manualContact, setManualContact] = useState("");
-  const [manualCategory, setManualCategory] = useState<CheckinCategory | null>(null);
   const [manualBusy, setManualBusy] = useState(false);
   const [manualError, setManualError] = useState("");
 
@@ -355,7 +354,6 @@ export default function CheckInApp() {
       loadCounts();
       setManualName("");
       setManualContact("");
-      setManualCategory(null);
     } catch {
       setManualError("Something went wrong. Please try again.");
     } finally {
@@ -800,6 +798,14 @@ export default function CheckInApp() {
           <div>
             <form onSubmit={doManualCheckIn} className="space-y-4">
               <div>
+                <label className="block text-sm font-medium text-[#0E281E]/70 mb-1">
+                  Host Category
+                </label>
+                <div className="h-14 px-4 rounded-md bg-[#0E281E]/5 border border-[#0E281E]/10 text-[#C5A059] font-medium flex items-center">
+                  {category ? checkinCategoryLabel(category) : "—"}
+                </div>
+              </div>
+              <div>
                 <label htmlFor="manual-name" className="block text-sm font-medium text-[#0E281E]/70 mb-1">
                   Guest Name <span className="text-red-500">*</span>
                 </label>
@@ -830,26 +836,6 @@ export default function CheckInApp() {
                   disabled={manualBusy}
                 />
               </div>
-              <div>
-                <label htmlFor="manual-category" className="block text-sm font-medium text-[#0E281E]/70 mb-1">
-                  Host Category <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="manual-category"
-                  value={manualCategory || ""}
-                  onChange={(e) => setManualCategory(e.target.value as CheckinCategory)}
-                  className={inputCls}
-                  disabled={manualBusy}
-                  required
-                >
-                  <option value="">Select host category</option>
-                  {CHECKIN_CATEGORIES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
               {manualError && (
                 <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-4 py-3">
                   {manualError}
@@ -857,7 +843,7 @@ export default function CheckInApp() {
               )}
               <button
                 type="submit"
-                disabled={manualBusy || !manualName.trim() || !manualCategory}
+                disabled={manualBusy || !manualName.trim() || !category}
                 className="w-full h-14 rounded-md bg-[#0E281E] text-[#FBF9F4] text-sm uppercase tracking-[0.2em] font-medium border border-[#C5A059]/40 disabled:opacity-60 touch-manipulation active:scale-[0.99]"
               >
                 {manualBusy ? "Checking in…" : "Check in guest manually"}
