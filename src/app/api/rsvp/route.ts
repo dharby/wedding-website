@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { submitRSVP, isRSVPCategory, type RSVPCategory } from "@/lib/types";
 import { getSupabaseServer } from "@/lib/supabase";
+import { checkCategoryCapacity, getGuestLimit } from "@/lib/guest-limits";
 
 function generateToken(): string {
   return "tok_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -16,6 +17,18 @@ export async function POST(req: NextRequest) {
     }
 
     const category: RSVPCategory = isRSVPCategory(rsvp_category) ? rsvp_category : "couple";
+
+    const supabase = getSupabaseServer();
+    const capacity = await checkCategoryCapacity(category, supabase);
+    
+    if (!capacity.canAdd) {
+      const limit = getGuestLimit(category);
+      const categoryLabel = category === "grooms_parents" ? "Groom's Parents" : 
+                           category === "brides_parents" ? "Bride's Parents" : "The Couple";
+      return NextResponse.json({ 
+        error: `The ${categoryLabel} guest list has reached its maximum capacity of ${limit} guests. Please contact the couple directly.`
+      }, { status: 403 });
+    }
 
     const result = await submitRSVP({
       invitation_id: invitation_id || null,

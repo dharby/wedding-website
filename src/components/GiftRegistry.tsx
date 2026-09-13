@@ -155,6 +155,15 @@ export default function GiftRegistry() {
             <p className="text-[0.85rem] sm:text-[0.9rem] text-ink-muted font-sans leading-relaxed">
               Your kindness means so much to us.
             </p>
+            <button
+              onClick={() => { setSent(false); setName(""); setContact(""); }}
+              className="mt-6 inline-flex items-center gap-2 text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans text-gold/80 hover:text-gold transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Account Details
+            </button>
           </motion.div>
         )}
       </div>
