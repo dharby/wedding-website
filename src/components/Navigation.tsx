@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/lib/ThemeContext";
 
 const links = [
   { name: "Home", href: "#home" },
@@ -19,13 +20,13 @@ const links = [
 export default function Navigation() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { theme } = useTheme();
 
   const [showRSVP, setShowRSVP] = useState(false);
 
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 60);
-      // Hide RSVP button when near bottom (footer area)
       const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
       setShowRSVP(!nearBottom && window.scrollY > 300);
     };
@@ -40,6 +41,13 @@ export default function Navigation() {
     }, 50);
   };
 
+  const isDark = theme === "dark";
+  const navBg = scrolled ? (isDark ? "rgba(14,40,30,0.95)" : "rgba(251,249,244,0.95)") : "transparent";
+  const navBorder = scrolled ? (isDark ? "1px solid rgba(209,220,211,0.2)" : "1px solid rgba(209,220,211,0.5)") : "none";
+  const linkColor = isDark ? "text-cream/80" : "text-ink-soft/70";
+  const linkHover = isDark ? "hover:text-gold" : "hover:text-emerald";
+  const underlineColor = isDark ? "bg-gold" : "bg-gold";
+
   return (
     <>
       {/* Desktop */}
@@ -48,20 +56,17 @@ export default function Navigation() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.3 }}
         className="hidden md:flex fixed top-0 inset-x-0 z-50 justify-center transition-all duration-500 backdrop-blur-md"
-        style={{
-          background: scrolled ? "rgba(251,249,244,0.95)" : "transparent",
-          borderBottom: scrolled ? "1px solid rgba(209,220,211,0.5)" : "none",
-        }}
+        style={{ background: navBg, borderBottom: navBorder }}
       >
         <div className="flex items-center gap-8 py-4">
           {links.map((l) => (
             <button
               key={l.name}
               onClick={() => nav(l.href)}
-              className="text-[0.6rem] uppercase tracking-[0.2em] font-sans text-ink-soft/70 dark:text-cream/80 hover:text-emerald dark:hover:text-gold transition-colors duration-300 relative group"
+              className={`text-[0.6rem] uppercase tracking-[0.2em] font-sans ${linkColor} ${linkHover} transition-colors duration-300 relative group`}
             >
               {l.name}
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-gold group-hover:w-full transition-all duration-300" />
+              <span className={`absolute -bottom-1 left-0 w-0 h-px ${underlineColor} group-hover:w-full transition-all duration-300`} />
             </button>
           ))}
         </div>
@@ -73,10 +78,7 @@ export default function Navigation() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.3 }}
         className="md:hidden fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 py-3 transition-all duration-400 backdrop-blur-md"
-        style={{
-          background: scrolled ? "rgba(251,249,244,0.95)" : "transparent",
-          borderBottom: scrolled ? "1px solid rgba(209,220,211,0.4)" : "none",
-        }}
+        style={{ background: navBg, borderBottom: navBorder }}
       >
         <button onClick={() => setOpen(true)} className="p-1" aria-label="Open menu">
           <svg className="w-5 h-5 text-emerald dark:text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

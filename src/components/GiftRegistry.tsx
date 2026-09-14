@@ -104,6 +104,16 @@ export default function GiftRegistry() {
             onSubmit={handleConfirm}
             className="space-y-4"
           >
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="inline-flex items-center gap-2 text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans text-gold/80 hover:text-gold transition-colors mb-4"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Account Details
+            </button>
             <div>
               <label className="block text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans text-ink-muted mb-1.5">
                 Full Name *

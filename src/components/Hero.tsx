@@ -20,7 +20,7 @@ export default function Hero() {
   return (
     <section className="relative min-h-[92dvh] flex items-center justify-center overflow-hidden bg-cream">
       {/* Botanical corners */}
-      <div className="absolute inset-0 pointer-events-none">
+<div className="absolute inset-0 pointer-events-none">
         <svg className="absolute top-0 left-0 w-48 h-48 md:w-72 md:h-72 opacity-[0.06]" viewBox="0 0 200 200" fill="none">
           <path d="M10 190 Q30 130 20 80 Q10 30 60 10 Q90 0 110 30 Q100 70 70 80 Q40 90 50 60" stroke="#1B3B2B" strokeWidth="1.2"/>
           <path d="M60 10 Q80 30 100 25 Q120 20 130 40 Q140 60 120 70 Q100 80 80 60" stroke="#4A6B53" strokeWidth="0.8"/>
@@ -41,51 +41,6 @@ export default function Hero() {
           <path d="M110 30 Q130 20 150 35 Q170 50 155 80" stroke="#4A6B53" strokeWidth="0.8"/>
         </svg>
       </div>
-
-      {/* Arc-like frame image placeholder - right side of hero */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, rotate: -3 }}
-        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-        transition={{ delay: 0.3, duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        className="hidden lg:block absolute top-1/4 right-5 z-10 pointer-events-none"
-        style={{ transformOrigin: "center center" }}
-      >
-        <div className="relative w-56 h-56">
-          {/* Arc frame */}
-          <svg className="absolute inset-0" viewBox="0 0 224 224" fill="none">
-            <path
-              d="M112 12 C62.5 12 22 52.5 22 102 C22 151.5 62.5 192 112 192 C161.5 192 202 151.5 202 102 C202 52.5 161.5 12 112 12"
-              stroke="#C5A059"
-              strokeWidth="3"
-              strokeDasharray="8 4"
-              opacity="0.4"
-            />
-            <path
-              d="M112 20 C162.7 20 204 61.3 204 102 C204 142.7 162.7 184 112 184 C61.3 184 20 142.7 20 102 C20 61.3 61.3 20 112 20"
-              stroke="#C5A059"
-              strokeWidth="1.5"
-              opacity="0.6"
-            />
-            {/* Decorative elements on the arc */}
-            <circle cx="112" cy="20" r="4" fill="#C5A059" opacity="0.5" />
-            <circle cx="204" cy="102" r="4" fill="#C5A059" opacity="0.4" />
-            <circle cx="112" cy="184" r="4" fill="#C5A059" opacity="0.3" />
-            <circle cx="20" cy="102" r="4" fill="#C5A059" opacity="0.4" />
-          </svg>
-          
-          {/* Image placeholder inside the arc */}
-          <div className="absolute inset-4 rounded-[50%] overflow-hidden bg-white/10 border border-gold/20 backdrop-blur-sm">
-            <div className="w-full h-full flex items-center justify-center">
-              <svg className="w-16 h-16 text-gold/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[0.55rem] uppercase tracking-[0.2em] text-gold/40 font-sans">
-              Pre-Wedding Photo
-            </div>
-          </div>
-        </div>
-      </motion.div>
 
       <div className="relative z-10 text-center px-5 max-w-4xl mx-auto">
         <motion.p
