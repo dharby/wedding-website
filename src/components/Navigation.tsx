@@ -9,6 +9,7 @@ const links = [
   { name: "Wedding", href: "#details" },
   { name: "Dress Code", href: "#dresscode" },
   { name: "Captured Moments", href: "#gallery" },
+  { name: "Pre-Wedding", href: "#prewedding" },
   { name: "Aso Ebi", href: "#asoebi" },
   { name: "Gift", href: "#registry" },
   { name: "FAQ", href: "#faq" },

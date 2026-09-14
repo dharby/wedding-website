@@ -20,9 +20,9 @@ const photos = [
   { src: "/pre-wedding/5.jpg", alt: "Pre-wedding photo 5" },
 ];
 
-export default function PreWeddingPhotosPage() {
+export default function PreWeddingMoments() {
   return (
-    <section className="py-14 md:py-20 bg-cream min-h-dvh">
+    <section id="prewedding" className="py-14 md:py-20 bg-cream">
       <div className="max-w-5xl mx-auto px-5">
         <motion.div
           custom={0}
@@ -76,24 +76,6 @@ export default function PreWeddingPhotosPage() {
               />
             </motion.div>
           ))}
-        </motion.div>
-
-        <motion.div
-          custom={2}
-          initial="hidden"
-          animate="visible"
-          variants={reveal}
-          className="mt-10 text-center"
-        >
-          <a
-            href="#"
-            className="inline-flex items-center gap-2 text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans text-gold/80 hover:text-gold transition-colors"
-          >
-            Back to Home
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </a>
         </motion.div>
       </div>
     </section>

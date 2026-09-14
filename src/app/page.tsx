@@ -10,6 +10,7 @@ import WeddingDetails from "@/components/WeddingDetails";
 import DressCode from "@/components/DressCode";
 import OurStory from "@/components/OurStory";
 import Gallery from "@/components/Gallery";
+import PreWeddingMoments from "@/components/PreWeddingMoments";
 import RSVP from "@/components/RSVP";
 import RSVPContacts from "@/components/RSVPContacts";
 import AsoEbi from "@/components/AsoEbi";
@@ -177,6 +178,12 @@ export default function Home() {
           <div className="w-24 mx-auto border-t border-gold/30" />
 
           <Gallery />
+
+          <div className="w-24 mx-auto border-t border-gold/30" />
+
+          <div id="prewedding">
+            <PreWeddingMoments />
+          </div>
 
           <div className="w-24 mx-auto border-t border-gold/30" />
 
