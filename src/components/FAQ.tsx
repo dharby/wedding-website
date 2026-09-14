@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 const faqs = [
   { q: "What should I wear?", a: "The official wedding colors are Emerald Green, Antique Gold, and Sage Green. For the traditional wedding, feel free to wear your finest traditional attire. For the white wedding and reception, formal wear in the color code is appreciated." },
   { q: "Where is the venue?", a: "Amen Center, 2nd Ave, Ipaja, Lagos 102213, Lagos. There is adequate parking available at the venue." },
-  { q: "Can I bring a plus one?", a: "No. Each invitation is for the guest specified on the invitation. Children are welcome but must be accompanied and supervised by their parent or guardian." },
-  { q: "Are children invited?", a: "Yes. Children are welcome, but we kindly ask parents to look after their wards throughout the celebration." },
+  { q: "Can I bring a plus one?", a: "No. Each invitation is for the guest specified on the invitation only." },
+  { q: "Are children invited?", a: "NO. Children are not allowed at this event. Please make appropriate arrangements." },
   { q: "When should I RSVP?", a: "As soon as possible. Kindly respond before the wedding day so we can plan accordingly." },
   { q: "Where can I get the Aso Ebi?", a: "Please contact Moyin for the bride's side or Princess for the groom's side. Their contact details are in the Aso Ebi section." },
   { q: "Is there parking?", a: "Yes, Amen Center has adequate parking space for all guests." },
