@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const milestones = [
   { year: "2021", title: "The First Meeting", desc: "One beautiful evening on the streets of Twitter (now X) — our paths crossed and a conversation began." },
@@ -46,16 +47,16 @@ export default function OurStory() {
               <circle cx="200" cy="480" r="4" fill="#C5A059" opacity="0.3" />
             </svg>
             
-            {/* Image placeholder inside the arch */}
-            <div className="relative w-full aspect-[4/5] rounded-t-[9999px] overflow-hidden bg-white/10 border border-gold/20 border-b-0 backdrop-blur-sm">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="w-20 h-20 text-gold/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[0.6rem] uppercase tracking-[0.2em] text-gold/40 font-sans">
-                Our Photo — Add Image Here
-              </div>
+            {/* Actual hero image inside the arch */}
+            <div className="relative w-full aspect-[4/5] rounded-t-[9999px] overflow-hidden">
+              <Image
+                src="/images/our-story-hero.jpg"
+                alt="Anuoluwapo & Tochukwu - Our Story"
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
+              />
             </div>
           </div>
         </motion.div>

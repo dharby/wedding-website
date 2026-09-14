@@ -13,11 +13,11 @@ const reveal = {
 };
 
 const photos = [
-  { src: "/pre-wedding/1.svg", alt: "Pre-wedding photo 1" },
-  { src: "/pre-wedding/2.svg", alt: "Pre-wedding photo 2" },
-  { src: "/pre-wedding/3.svg", alt: "Pre-wedding photo 3" },
-  { src: "/pre-wedding/4.svg", alt: "Pre-wedding photo 4" },
-  { src: "/pre-wedding/5.svg", alt: "Pre-wedding photo 5" },
+  { src: "/pre-wedding/1.jpg", alt: "Pre-wedding photo 1" },
+  { src: "/pre-wedding/2.jpg", alt: "Pre-wedding photo 2" },
+  { src: "/pre-wedding/3.jpg", alt: "Pre-wedding photo 3" },
+  { src: "/pre-wedding/4.jpg", alt: "Pre-wedding photo 4" },
+  { src: "/pre-wedding/5.jpg", alt: "Pre-wedding photo 5" },
 ];
 
 export default function PreWeddingPhotosPage() {
