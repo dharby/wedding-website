@@ -37,6 +37,20 @@ export const metadata: Metadata = {
     description: "Saturday, November 28th, 2026 — Amen Center, Lagos",
     type: "website",
     locale: "en_NG",
+    images: [
+      {
+        url: "/images/our-story-hero.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Anuoluwapo & Tochukwu Wedding",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Anuoluwapo & Tochukwu | Wedding Celebration",
+    description: "Saturday, November 28th, 2026 — Amen Center, Lagos",
+    images: ["/images/our-story-hero.jpg"],
   },
 };
 
