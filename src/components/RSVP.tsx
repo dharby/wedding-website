@@ -11,6 +11,7 @@ interface Guest {
   rsvp_status: string;
   rsvp_category: string | null;
   rsvp_id: string | null;
+  reference_number: string | null;
 }
 
 interface Form {
@@ -50,6 +51,7 @@ export default function RSVP() {
   const [refNum, setRefNum] = useState("");
   const [error, setError] = useState("");
   const [searching, setSearching] = useState(false);
+  const [isExistingRsvp, setIsExistingRsvp] = useState(false);
 
   const searchGuests = async () => {
     if (searchName.trim().length < 2) {
@@ -83,6 +85,20 @@ export default function RSVP() {
   const selectGuest = (guest: Guest) => {
     setSelectedGuest(guest);
     setIsNewGuest(false);
+    // If guest already RSVP'd, show their existing result directly
+    if (guest.rsvp_status === "accepted" || guest.rsvp_status === "declined") {
+      setIsExistingRsvp(true);
+      setForm((p) => ({
+        ...p,
+        category: isRSVPCategory(guest.rsvp_category) ? guest.rsvp_category : "",
+        attending: guest.rsvp_status === "accepted" ? "yes" : "no",
+      }));
+      setRefNum(guest.reference_number || guest.invitation_token || "");
+      setResult(guest.rsvp_status === "accepted" ? "accepted" : "declined");
+      setStep("result");
+      return;
+    }
+    setIsExistingRsvp(false);
     // Preselect the guest's existing list; they can still change it.
     setForm((p) => ({ ...p, category: isRSVPCategory(guest.rsvp_category) ? guest.rsvp_category : "" }));
     setStep("form");
@@ -252,7 +268,7 @@ export default function RSVP() {
                       </p>
                       {guest.rsvp_status !== "pending" && (
                         <p className="text-[0.7rem] text-gold/70 font-sans mt-1">
-                          Already RSVP&apos;d: {guest.rsvp_status}
+                          Already RSVP&apos;d: {guest.rsvp_status === "accepted" ? "Attending" : "Not Attending"} — tap to view access card
                         </p>
                       )}
                     </button>
@@ -421,12 +437,16 @@ export default function RSVP() {
                 <span className="text-cream text-xl">{result === "accepted" ? "✓" : "♥"}</span>
               </div>
               <h3 className="text-[1.5rem] sm:text-[1.5rem] font-serif text-emerald mb-2">
-                Thank you, {(isNewGuest ? form.name.trim().split(" ")[0] : selectedGuest?.guest_name.split(" ")[0])} ❤️
+                {isExistingRsvp
+                  ? `Welcome back, ${(isNewGuest ? form.name.trim().split(" ")[0] : selectedGuest?.guest_name.split(" ")[0])} ❤️`
+                  : `Thank you, ${(isNewGuest ? form.name.trim().split(" ")[0] : selectedGuest?.guest_name.split(" ")[0])} ❤️`}
               </h3>
               <p className="text-[0.95rem] sm:text-[1.05rem] text-ink-soft font-sans mb-4 leading-relaxed">
-                {result === "accepted"
-                  ? "We cannot wait to celebrate with you."
-                  : "You will be dearly missed, but we are grateful for your love and warm wishes."}
+                {isExistingRsvp
+                  ? `You have already RSVP'd as "${result === "accepted" ? "Attending" : "Not Attending"}". Here are your access details.`
+                  : result === "accepted"
+                    ? "We cannot wait to celebrate with you."
+                    : "You will be dearly missed, but we are grateful for your love and warm wishes."}
               </p>
               <div className="bg-white border border-sage-border/40 rounded-[2px] py-4 px-6 mb-4 inline-block">
                 <p className="text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
@@ -451,21 +471,39 @@ export default function RSVP() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     const card = document.getElementById("access-card");
-                    if (card) {
-                      import("html2canvas").then(({ default: html2canvas }) => {
-                        html2canvas(card, {
-                          backgroundColor: "#FBF9F4",
-                          scale: 3,
-                          useCORS: true,
-                        }).then((canvas) => {
-                          const link = document.createElement("a");
-                          link.download = `Access-Card-${refNum.replace(/[^a-zA-Z0-9]/g, "")}.png`;
-                          link.href = canvas.toDataURL("image/png");
-                          link.click();
-                        });
+                    if (!card) return;
+                    // Temporarily make card visible for capture
+                    card.style.position = "absolute";
+                    card.style.left = "-9999px";
+                    card.style.display = "block";
+                    try {
+                      const html2canvas = (await import("html2canvas")).default;
+                      const canvas = await html2canvas(card, {
+                        backgroundColor: "#FBF9F4",
+                        scale: 3,
+                        useCORS: true,
                       });
+                      const dataUrl = canvas.toDataURL("image/png");
+                      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+                      if (isIOS) {
+                        // iOS: open in new tab so user can long-press to save
+                        const win = window.open();
+                        if (win) {
+                          win.document.write(`<html><head><title>Access Card</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5"><img src="${dataUrl}" style="max-width:100%;height:auto" /></body></html>`);
+                        }
+                      } else {
+                        // Desktop/Android: trigger download
+                        const link = document.createElement("a");
+                        link.download = `Access-Card-${refNum.replace(/[^a-zA-Z0-9]/g, "")}.png`;
+                        link.href = dataUrl;
+                        link.click();
+                      }
+                    } finally {
+                      card.style.position = "";
+                      card.style.left = "";
+                      card.style.display = "";
                     }
                   }}
                   className="inline-flex items-center gap-2 h-12 px-6 bg-emerald text-cream text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans font-medium border border-gold/30 rounded-[3px] transition-all duration-300 hover:bg-emerald-mid hover:border-gold/50 hover:-translate-y-0.5 active:scale-[0.98]"
@@ -521,7 +559,7 @@ export default function RSVP() {
               </p>
               <button
                 type="button"
-                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setIsNewGuest(false); setResult(null); setForm({ name: "", contact: "", attending: "", category: "", notes: "" }); }}
+                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setIsNewGuest(false); setIsExistingRsvp(false); setResult(null); setForm({ name: "", contact: "", attending: "", category: "", notes: "" }); }}
                 className="text-[0.75rem] text-gold/70 font-sans underline hover:text-gold"
               >
                 RSVP for another guest
