@@ -472,38 +472,121 @@ export default function RSVP() {
                 <button
                   type="button"
                   onClick={async () => {
-                    const card = document.getElementById("access-card");
-                    if (!card) return;
-                    // Temporarily make card visible for capture
-                    card.style.position = "absolute";
-                    card.style.left = "-9999px";
-                    card.style.display = "block";
-                    try {
-                      const html2canvas = (await import("html2canvas")).default;
-                      const canvas = await html2canvas(card, {
-                        backgroundColor: "#FBF9F4",
-                        scale: 3,
-                        useCORS: true,
-                      });
-                      const dataUrl = canvas.toDataURL("image/png");
-                      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
-                      if (isIOS) {
-                        // iOS: open in new tab so user can long-press to save
-                        const win = window.open();
-                        if (win) {
-                          win.document.write(`<html><head><title>Access Card</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5"><img src="${dataUrl}" style="max-width:100%;height:auto" /></body></html>`);
-                        }
-                      } else {
-                        // Desktop/Android: trigger download
-                        const link = document.createElement("a");
-                        link.download = `Access-Card-${refNum.replace(/[^a-zA-Z0-9]/g, "")}.png`;
-                        link.href = dataUrl;
-                        link.click();
+                    const W = 800;
+                    const H = 500;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = W * 3;
+                    canvas.height = H * 3;
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) return;
+                    ctx.scale(3, 3);
+
+                    // Background
+                    ctx.fillStyle = "#FBF9F4";
+                    ctx.fillRect(0, 0, W, H);
+
+                    // Border
+                    ctx.strokeStyle = "#2D5A3D";
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(12, 12, W - 24, H - 24);
+
+                    // Inner border
+                    ctx.strokeStyle = "#C5A05940";
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(20, 20, W - 40, H - 40);
+
+                    // Header label
+                    ctx.fillStyle = "#C5A059";
+                    ctx.font = "600 11px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.letterSpacing = "4px";
+                    ctx.fillText("WEDDING INVITATION", W / 2, 55);
+
+                    // Couple names
+                    ctx.fillStyle = "#2D5A3D";
+                    ctx.font = "500 28px serif";
+                    ctx.fillText("Anuoluwapo & Tochukwu", W / 2, 95);
+
+                    // Event details
+                    ctx.fillStyle = "#666";
+                    ctx.font = "400 11px sans-serif";
+                    ctx.fillText("NOVEMBER 28, 2026  ·  AMEN CENTER, LAGOS", W / 2, 118);
+
+                    // Divider line
+                    ctx.strokeStyle = "#2D5A3D40";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(120, 140);
+                    ctx.lineTo(W - 120, 140);
+                    ctx.stroke();
+
+                    // Guest Name label
+                    ctx.fillStyle = "#999";
+                    ctx.font = "600 10px sans-serif";
+                    ctx.fillText("GUEST NAME", W / 2, 172);
+
+                    // Guest Name value
+                    const guestName = (isNewGuest ? form.name.trim() : selectedGuest?.guest_name) || "";
+                    ctx.fillStyle = "#2D5A3D";
+                    ctx.font = "500 22px serif";
+                    ctx.fillText(guestName, W / 2, 202);
+
+                    // Divider line
+                    ctx.beginPath();
+                    ctx.moveTo(120, 222);
+                    ctx.lineTo(W - 120, 222);
+                    ctx.stroke();
+
+                    // Category label
+                    ctx.fillStyle = "#999";
+                    ctx.font = "600 10px sans-serif";
+                    ctx.fillText("CATEGORY", W / 2, 252);
+
+                    // Category value
+                    ctx.fillStyle = "#2D5A3D";
+                    ctx.font = "500 16px serif";
+                    ctx.fillText(rsvpCategoryLabel(form.category), W / 2, 278);
+
+                    // Divider line
+                    ctx.beginPath();
+                    ctx.moveTo(120, 298);
+                    ctx.lineTo(W - 120, 298);
+                    ctx.stroke();
+
+                    // Access Number label
+                    ctx.fillStyle = "#999";
+                    ctx.font = "600 10px sans-serif";
+                    ctx.fillText("ACCESS NUMBER", W / 2, 328);
+
+                    // Access Number box
+                    ctx.fillStyle = "#ffffff80";
+                    ctx.fillRect(W / 2 - 120, 338, 240, 44);
+                    ctx.strokeStyle = "#2D5A3D40";
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(W / 2 - 120, 338, 240, 44);
+
+                    // Access Number value
+                    ctx.fillStyle = "#2D5A3D";
+                    ctx.font = "700 22px monospace";
+                    ctx.fillText(refNum, W / 2, 366);
+
+                    // Footer text
+                    ctx.fillStyle = "#C5A059";
+                    ctx.font = "600 9px sans-serif";
+                    ctx.fillText("PRESENT THIS CARD AT THE ENTRANCE", W / 2, 420);
+
+                    // Download
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+                    if (isIOS) {
+                      const win = window.open();
+                      if (win) {
+                        win.document.write(`<html><head><title>Access Card</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5"><img src="${canvas.toDataURL("image/png")}" style="max-width:100%;height:auto" /></body></html>`);
                       }
-                    } finally {
-                      card.style.position = "";
-                      card.style.left = "";
-                      card.style.display = "";
+                    } else {
+                      const link = document.createElement("a");
+                      link.download = `Access-Card-${refNum.replace(/[^a-zA-Z0-9]/g, "")}.png`;
+                      link.href = canvas.toDataURL("image/png");
+                      link.click();
                     }
                   }}
                   className="inline-flex items-center gap-2 h-12 px-6 bg-emerald text-cream text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans font-medium border border-gold/30 rounded-[3px] transition-all duration-300 hover:bg-emerald-mid hover:border-gold/50 hover:-translate-y-0.5 active:scale-[0.98]"
@@ -513,46 +596,6 @@ export default function RSVP() {
                   </svg>
                   Download Access Card
                 </button>
-              </div>
-              <div id="access-card" className="hidden max-w-xs mx-auto p-6 bg-cream border-2 border-emerald rounded-[2px] text-center">
-                <div className="mb-4">
-                  <p className="text-[0.55rem] uppercase tracking-[0.25em] text-gold/70 font-sans mb-1">
-                    Wedding Invitation
-                  </p>
-                  <h3 className="text-[1.25rem] font-serif text-emerald mb-1">
-                    Anuoluwapo & Tochukwu
-                  </h3>
-                  <p className="text-[0.65rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans">
-                    November 28, 2026 · Amen Center, Lagos
-                  </p>
-                </div>
-                <div className="border-t border-b border-emerald/30 py-4 mb-4">
-                  <p className="text-[0.55rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
-                    Guest Name
-                  </p>
-                  <p className="text-[1.1rem] font-serif text-emerald font-medium">
-                    {(isNewGuest ? form.name.trim() : selectedGuest?.guest_name)}
-                  </p>
-                </div>
-                <div className="border-t border-b border-emerald/30 py-4 mb-4">
-                  <p className="text-[0.55rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
-                    Category
-                  </p>
-                  <p className="text-[0.85rem] font-serif text-emerald font-medium">
-                    {rsvpCategoryLabel(form.category)}
-                  </p>
-                </div>
-                <div className="mb-4">
-                  <p className="text-[0.55rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
-                    Access Number
-                  </p>
-                  <p className="text-[1rem] font-mono text-emerald font-medium tracking-wider bg-white/50 px-3 py-2 rounded border border-emerald/30">
-                    {refNum}
-                  </p>
-                </div>
-                <p className="text-[0.55rem] uppercase tracking-[0.15em] text-gold/60 font-sans">
-                  Present this card at the entrance
-                </p>
               </div>
               <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/50 font-sans mb-6">
                 Download your access card and save it to your device gallery.
