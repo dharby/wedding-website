@@ -331,7 +331,11 @@ export default function CheckInApp() {
 
   const doManualCheckIn = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!category || !manualName.trim() || manualBusy) return;
+    const nameParts = manualName.trim().split(/\s+/).filter(Boolean);
+    if (!category || nameParts.length < 2 || manualBusy) {
+      if (nameParts.length === 1) setManualError("Please enter first and last name.");
+      return;
+    }
     setManualBusy(true);
     setManualError("");
     try {
@@ -830,7 +834,7 @@ export default function CheckInApp() {
                   type="text"
                   value={manualName}
                   onChange={(e) => setManualName(e.target.value)}
-                  placeholder="Enter guest's full name"
+                  placeholder="First and last name (e.g. Ada Okonkwo)"
                   className={inputCls}
                   maxLength={100}
                   required

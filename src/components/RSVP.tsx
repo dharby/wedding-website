@@ -115,7 +115,14 @@ export default function RSVP() {
 
   const validate = (): boolean => {
     const e: Errors = {};
-    if (isNewGuest && !form.name.trim()) e.name = "Please enter your full name";
+    if (isNewGuest) {
+      const nameParts = form.name.trim().split(/\s+/).filter(Boolean);
+      if (!form.name.trim()) {
+        e.name = "Please enter your full name";
+      } else if (nameParts.length < 2) {
+        e.name = "Please enter your first name and last name";
+      }
+    }
     if (!form.category) e.category = "Please choose who you are registering under";
     if (!form.contact.trim()) e.contact = "Please enter your email or phone number";
     if (!form.attending) e.attending = "Please let us know if you can make it";
@@ -341,13 +348,13 @@ export default function RSVP() {
                 {isNewGuest && (
                   <div>
                     <label className="block text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans text-ink-muted mb-1.5">
-                      Your Full Name *
+                      Your First & Last Name *
                     </label>
                     <input
                       type="text"
                       value={form.name}
                       onChange={(e) => update("name", e.target.value)}
-                      placeholder="Enter your full name"
+                      placeholder="e.g. Ada Okonkwo"
                       className={`w-full h-12 px-4 bg-white border ${errors.name ? "border-red-400" : "border-sage-border/60"} rounded-[2px] text-[0.95rem] font-sans text-ink placeholder:text-ink-muted/40 transition-colors`}
                     />
                     {errors.name && <p className="mt-1 text-[0.7rem] text-red-500 font-sans">{errors.name}</p>}

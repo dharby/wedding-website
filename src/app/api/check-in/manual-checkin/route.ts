@@ -19,6 +19,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid request. Name and valid category are required." }, { status: 400 });
     }
 
+    // Require first and last name
+    const nameParts = name.split(/\s+/).filter(Boolean);
+    if (nameParts.length < 2) {
+      return NextResponse.json({ error: "Please enter first and last name." }, { status: 400 });
+    }
+
     if (name.length > 100) {
       return NextResponse.json({ error: "Name is too long (max 100 characters)." }, { status: 400 });
     }

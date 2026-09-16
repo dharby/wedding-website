@@ -16,6 +16,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // Require first and last name
+    const nameParts = guest_name.trim().split(/\s+/).filter(Boolean);
+    if (nameParts.length < 2) {
+      return NextResponse.json({ error: "Please enter your first and last name." }, { status: 400 });
+    }
+
     const category: RSVPCategory = isRSVPCategory(rsvp_category) ? rsvp_category : "couple";
 
     const supabase = getSupabaseServer();
