@@ -7,6 +7,11 @@ const GENERIC = "Something went wrong. Please try again.";
 const BASE_COLS = "id, guest_name, guest_contact, rsvp_category, rsvp_status, invitation_token";
 const FULL_COLS = BASE_COLS + ", check_in_status, check_in_time";
 
+// Normalize access number for flexible search (remove dashes, uppercase)
+function normalizeCode(code: string): string {
+  return code.replace(/[-\s]/g, "").toUpperCase();
+}
+
 export async function GET(req: NextRequest) {
   try {
     if (!(await requireUsher())) {
@@ -25,7 +30,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = getSupabaseServer();
-    const like = `%${q}%`;
+    const normalizedQ = normalizeCode(q);
 
     // Try with full columns first; fall back if check-in columns don't exist.
     let cols = FULL_COLS;
@@ -39,24 +44,28 @@ export async function GET(req: NextRequest) {
       cols = BASE_COLS;
     }
 
-    const { data, error } = await supabase
+    // Build query: search by name OR by reference number (flexible matching)
+    // We need to join with rsvps table to search by reference_number
+    const like = `%${q}%`;
+
+    // First, get all guests in the category with their reference numbers
+    const { data: guestsData, error: guestsError } = await supabase
       .from("invitations")
       .select(cols)
       .eq("rsvp_category", category)
       .eq("is_active", true)
-      .ilike("guest_name", like)
-      .order("guest_name")
-      .limit(20);
+      .order("guest_name");
 
-    if (error) {
-      console.error("search error:", error);
+    if (guestsError) {
+      console.error("search error:", guestsError);
       return NextResponse.json({ error: GENERIC }, { status: 500 });
     }
 
-    const refByInvitation = new Map<string, string>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rows = (data || []) as any[];
+    // Get reference numbers for all these guests
+    const rows = (guestsData || []) as any[];
     const ids = rows.map((g: any) => g.id);
+    
+    let refByInvitation = new Map<string, string>();
     if (ids.length > 0) {
       const { data: codes } = await supabase
         .from("rsvps")
@@ -67,7 +76,19 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const guests = rows.map((g: any) => ({
+    // Filter guests by name OR by access number (flexible matching)
+    const filteredGuests = rows.filter((g: any) => {
+      const nameMatch = g.guest_name.toLowerCase().includes(q.toLowerCase());
+      const code = refByInvitation.get(g.id) || g.invitation_token || "";
+      const normalizedCode = normalizeCode(code);
+      const codeMatch = normalizedCode.includes(normalizedQ);
+      return nameMatch || codeMatch;
+    });
+
+    // Limit to 20 results
+    const limitedGuests = filteredGuests.slice(0, 20);
+
+    const guests = limitedGuests.map((g: any) => ({
       id: g.id,
       name: g.guest_name,
       contact: g.guest_contact,

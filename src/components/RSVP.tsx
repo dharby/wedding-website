@@ -436,17 +436,88 @@ export default function RSVP() {
                   {rsvpCategoryLabel(form.category)}
                 </p>
                 <p className="text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
-                  Your Reference Number
+                  Your Access Number
                 </p>
                 <p className="text-[1rem] sm:text-[1.25rem] font-serif text-emerald font-medium tracking-wide">
                   {refNum}
                 </p>
               </div>
-              <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/60 font-sans mb-6">
-                Please present this reference number at the entrance.
+              <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/60 font-sans mb-4">
+                Please present this access number at the entrance.
               </p>
               <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/50 font-sans mb-6">
                 This invitation admits one guest only. Plus-ones are not permitted.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const card = document.getElementById("access-card");
+                    if (card) {
+                      import("html2canvas").then(({ default: html2canvas }) => {
+                        html2canvas(card, {
+                          backgroundColor: "#FBF9F4",
+                          scale: 3,
+                          useCORS: true,
+                        }).then((canvas) => {
+                          const link = document.createElement("a");
+                          link.download = `Access-Card-${refNum.replace(/[^a-zA-Z0-9]/g, "")}.png`;
+                          link.href = canvas.toDataURL("image/png");
+                          link.click();
+                        });
+                      });
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 h-12 px-6 bg-emerald text-cream text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans font-medium border border-gold/30 rounded-[3px] transition-all duration-300 hover:bg-emerald-mid hover:border-gold/50 hover:-translate-y-0.5 active:scale-[0.98]"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4 8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Download Access Card
+                </button>
+              </div>
+              <div id="access-card" className="hidden max-w-xs mx-auto p-6 bg-cream border-2 border-emerald rounded-[2px] text-center">
+                <div className="mb-4">
+                  <p className="text-[0.55rem] uppercase tracking-[0.25em] text-gold/70 font-sans mb-1">
+                    Wedding Invitation
+                  </p>
+                  <h3 className="text-[1.25rem] font-serif text-emerald mb-1">
+                    Anuoluwapo & Tochukwu
+                  </h3>
+                  <p className="text-[0.65rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans">
+                    November 28, 2026 · Amen Center, Lagos
+                  </p>
+                </div>
+                <div className="border-t border-b border-emerald/30 py-4 mb-4">
+                  <p className="text-[0.55rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
+                    Guest Name
+                  </p>
+                  <p className="text-[1.1rem] font-serif text-emerald font-medium">
+                    {(isNewGuest ? form.name.trim() : selectedGuest?.guest_name)}
+                  </p>
+                </div>
+                <div className="border-t border-b border-emerald/30 py-4 mb-4">
+                  <p className="text-[0.55rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
+                    Category
+                  </p>
+                  <p className="text-[0.85rem] font-serif text-emerald font-medium">
+                    {rsvpCategoryLabel(form.category)}
+                  </p>
+                </div>
+                <div className="mb-4">
+                  <p className="text-[0.55rem] uppercase tracking-[0.2em] text-ink-muted/60 font-sans mb-1">
+                    Access Number
+                  </p>
+                  <p className="text-[1rem] font-mono text-emerald font-medium tracking-wider bg-white/50 px-3 py-2 rounded border border-emerald/30">
+                    {refNum}
+                  </p>
+                </div>
+                <p className="text-[0.55rem] uppercase tracking-[0.15em] text-gold/60 font-sans">
+                  Present this card at the entrance
+                </p>
+              </div>
+              <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-muted/50 font-sans mb-6">
+                Download your access card and save it to your device gallery.
               </p>
               <button
                 type="button"

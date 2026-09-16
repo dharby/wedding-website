@@ -637,6 +637,11 @@ export default function CheckInApp() {
                   loadCheckedList("", category || undefined);
                   loadCounts();
                 }
+                if (t === "search") {
+                  // Auto-load all guests in this category when search tab opens
+                  setQuery("");
+                  doSearch();
+                }
               }}
               className={`h-12 rounded-md text-xs uppercase tracking-[0.1em] font-medium touch-manipulation ${
                 tab === t ? "bg-[#0E281E] text-[#FBF9F4]" : "text-[#0E281E]/60"
@@ -656,13 +661,13 @@ export default function CheckInApp() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && doSearch()}
-                placeholder="Name, phone, or code"
+                placeholder="Name, phone, or access number (e.g., AT20269C4D)"
                 enterKeyHint="search"
                 className={inputCls}
               />
               <button
                 onClick={doSearch}
-                disabled={searching || query.trim().length < 2}
+                disabled={searching}
                 className="shrink-0 h-14 px-5 rounded-md bg-[#0E281E] text-[#FBF9F4] text-sm uppercase tracking-[0.12em] font-medium border border-[#C5A059]/40 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
               >
                 {searching ? "…" : "Go"}
@@ -671,31 +676,43 @@ export default function CheckInApp() {
 
             {searched && results.length > 0 && (
               <div className="mt-4 space-y-2">
-                {results.map((g) => (
-                  <button
-                    key={g.id}
-                    onClick={() => openDetail(g.id)}
-                    className="w-full p-4 rounded-lg bg-white border border-[#0E281E]/15 text-left touch-manipulation active:scale-[0.99]"
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="text-lg font-medium truncate">{g.name}</span>
-                      {g.checkInStatus === "checked_in" ? (
-                        <span className="shrink-0 text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
-                          ✓ In
+                {results.map((g) => {
+                  // Check if there are other guests with the same name in results
+                  const sameNameCount = results.filter((r) => r.name === g.name).length;
+                  const showAccessPrompt = sameNameCount > 1;
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => openDetail(g.id)}
+                      className="w-full p-4 rounded-lg bg-white border border-[#0E281E]/15 text-left touch-manipulation active:scale-[0.99]"
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-lg font-medium truncate">{g.name}</span>
+                        {g.checkInStatus === "checked_in" ? (
+                          <span className="shrink-0 text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+                            ✓ In
+                          </span>
+                        ) : (
+                          <span className="shrink-0 text-xs uppercase tracking-wider text-[#0E281E]/50">View guest ›</span>
+                        )}
+                      </span>
+                      <span className="block mt-1 text-xs uppercase tracking-[0.15em] text-[#C5A059]">
+                        {checkinCategoryLabel(g.category)}
+                      </span>
+                      <div className="block mt-0.5 text-xs text-[#0E281E]/60 space-y-0.5">
+                        <span>
+                          {g.rsvpStatus === "accepted" ? "RSVP Confirmed" : g.rsvpStatus === "declined" ? "Declined" : "RSVP Pending"}
+                          {g.code ? ` · Access: ${g.code}` : ""}
                         </span>
-                      ) : (
-                        <span className="shrink-0 text-xs uppercase tracking-wider text-[#0E281E]/50">View guest ›</span>
-                      )}
-                    </span>
-                    <span className="block mt-1 text-xs uppercase tracking-[0.15em] text-[#C5A059]">
-                      {checkinCategoryLabel(g.category)}
-                    </span>
-                    <span className="block mt-0.5 text-xs text-[#0E281E]/60">
-                      {g.rsvpStatus === "accepted" ? "RSVP Confirmed" : g.rsvpStatus === "declined" ? "Declined" : "RSVP Pending"}
-                      {g.code ? ` · ${g.code}` : ""}
-                    </span>
-                  </button>
-                ))}
+                        {showAccessPrompt && (
+                          <span className="text-[0.55rem] uppercase tracking-[0.1em] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 inline-block">
+                            Multiple guests with this name — verify access number
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </>
