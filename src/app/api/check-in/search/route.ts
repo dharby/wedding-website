@@ -25,10 +25,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Please select a guest category first." }, { status: 400 });
     }
     const q = rawQ.replace(/[%_,\\]/g, "").slice(0, 64);
-    if (q.length < 2) {
-      return NextResponse.json({ error: "Enter at least 2 characters to search." }, { status: 400 });
-    }
-
     const supabase = getSupabaseServer();
     const normalizedQ = normalizeCode(q);
 
@@ -77,13 +73,16 @@ export async function GET(req: NextRequest) {
     }
 
     // Filter guests by name OR by access number (flexible matching)
-    const filteredGuests = rows.filter((g: any) => {
-      const nameMatch = g.guest_name.toLowerCase().includes(q.toLowerCase());
-      const code = refByInvitation.get(g.id) || g.invitation_token || "";
-      const normalizedCode = normalizeCode(code);
-      const codeMatch = normalizedCode.includes(normalizedQ);
-      return nameMatch || codeMatch;
-    });
+    // If q is empty, return all guests in the category
+    const filteredGuests = q.length === 0
+      ? rows
+      : rows.filter((g: any) => {
+          const nameMatch = g.guest_name.toLowerCase().includes(q.toLowerCase());
+          const code = refByInvitation.get(g.id) || g.invitation_token || "";
+          const normalizedCode = normalizeCode(code);
+          const codeMatch = normalizedCode.includes(normalizedQ);
+          return nameMatch || codeMatch;
+        });
 
     // Limit to 20 results
     const limitedGuests = filteredGuests.slice(0, 20);

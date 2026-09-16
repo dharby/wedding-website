@@ -227,10 +227,9 @@ export default function CheckInApp() {
     }
   }, [expired]);
 
-  const doSearch = async () => {
+  const doSearch = async (overrideQuery?: string) => {
     if (!category || searching) return;
-    const q = query.trim();
-    if (q.length < 2) return;
+    const q = overrideQuery !== undefined ? overrideQuery.trim() : query.trim();
     setSearching(true);
     setSearched(false);
     try {
@@ -640,7 +639,7 @@ export default function CheckInApp() {
                 if (t === "search") {
                   // Auto-load all guests in this category when search tab opens
                   setQuery("");
-                  doSearch();
+                  doSearch("");
                 }
               }}
               className={`h-12 rounded-md text-xs uppercase tracking-[0.1em] font-medium touch-manipulation ${
@@ -666,11 +665,11 @@ export default function CheckInApp() {
                 className={inputCls}
               />
               <button
-                onClick={doSearch}
+                onClick={() => doSearch()}
                 disabled={searching}
                 className="shrink-0 h-14 px-5 rounded-md bg-[#0E281E] text-[#FBF9F4] text-sm uppercase tracking-[0.12em] font-medium border border-[#C5A059]/40 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
               >
-                {searching ? "…" : "Go"}
+                {searching ? "…" : query.trim() === "" ? "All" : "Go"}
               </button>
             </div>
 
