@@ -203,6 +203,11 @@ export default function RSVP() {
               🔒 This website is a private invitation for intended guests only. Please do not share or forward it to anyone.
             </p>
           </div>
+          <div className="mt-3 max-w-md mx-auto p-3 bg-emerald/5 border border-emerald/20 rounded-[2px]">
+            <p className="text-[0.7rem] sm:text-[0.75rem] text-ink-soft font-sans leading-relaxed">
+              ⚠️ Each guest can only RSVP <strong>once</strong>. Please ensure your details are correct before submitting.
+            </p>
+          </div>
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -587,7 +592,7 @@ export default function RSVP() {
                     if (isIOS) {
                       const win = window.open();
                       if (win) {
-                        win.document.write(`<html><head><title>Access Card</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5"><img src="${canvas.toDataURL("image/png")}" style="max-width:100%;height:auto" /></body></html>`);
+                        win.document.write(`<html><head><title>Access Card</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;background:#f5f5f5;font-family:-apple-system,sans-serif"><img src="${canvas.toDataURL("image/png")}" style="max-width:90%;height:auto;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.15)" /><p style="margin-top:20px;color:#666;font-size:14px;text-align:center;padding:0 20px">Screenshot this or long-press the image to save it safely to your Photos.</p></body></html>`);
                       }
                     } else {
                       const link = document.createElement("a");
