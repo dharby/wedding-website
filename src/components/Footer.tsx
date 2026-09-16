@@ -41,6 +41,19 @@ export default function Footer({ onReplay }: FooterProps) {
             </svg>
           </div>
 
+          {/* Credits */}
+          <p className="text-[0.65rem] sm:text-[0.7rem] uppercase tracking-[0.2em] text-gold/40 font-sans mb-2">
+            Website & Photography by
+          </p>
+          <a
+            href="https://www.instagram.com/cleekrightstudios?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw=="
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[0.75rem] sm:text-[0.8rem] font-script text-cream/70 hover:text-gold transition-colors underline underline-offset-2"
+          >
+            cleekrightstudios
+          </a>
+
           {/* Replay invitation */}
           {onReplay && (
             <button
