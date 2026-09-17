@@ -14,7 +14,7 @@ const links = [
   { name: "Aso Ebi", href: "#asoebi" },
   { name: "Gift", href: "#registry" },
   { name: "FAQ", href: "#faq" },
-  { name: "RSVP", href: "#rsvp" },
+  { name: "RSVP", href: "#rsvp=new" },
 ];
 
 export default function Navigation() {
@@ -97,7 +97,7 @@ export default function Navigation() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
-            onClick={() => nav("#rsvp")}
+            onClick={() => nav("#rsvp=new")}
             className="h-10 px-5 bg-emerald text-cream text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.18em] font-sans font-medium border border-gold/30 rounded-[3px] shadow-lg shadow-emerald/20 transition-all duration-400 hover:bg-emerald-mid"
           >
             RSVP

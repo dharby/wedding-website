@@ -125,7 +125,7 @@ export default function Hero() {
           className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4"
         >
           <button
-            onClick={() => scrollTo("rsvp")}
+            onClick={() => scrollTo("rsvp=new")}
             className="inline-flex items-center justify-center h-12 px-7 bg-emerald text-cream text-[0.8rem] sm:text-[0.85rem] uppercase tracking-[0.2em] font-sans font-medium border border-gold/30 rounded-[3px] transition-all duration-300 hover:bg-emerald-mid hover:border-gold/50 hover:-translate-y-0.5 active:scale-[0.98]"
           >
             RSVP to Celebrate

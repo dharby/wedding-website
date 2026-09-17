@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RSVP_CATEGORIES, rsvpCategoryLabel, isRSVPCategory, type RSVPCategory } from "@/lib/types";
 
@@ -52,6 +52,19 @@ export default function RSVP() {
   const [error, setError] = useState("");
   const [searching, setSearching] = useState(false);
   const [isExistingRsvp, setIsExistingRsvp] = useState(false);
+
+  // Auto-open new guest form when URL hash is #rsvp=new
+  useEffect(() => {
+    const checkHash = () => {
+      if (window.location.hash === "#rsvp=new") {
+        continueAsNewGuest();
+        window.history.replaceState(null, "", "#rsvp");
+      }
+    };
+    checkHash();
+    window.addEventListener("hashchange", checkHash);
+    return () => window.removeEventListener("hashchange", checkHash);
+  }, []);
 
   const searchGuests = async () => {
     if (searchName.trim().length < 2) {
