@@ -14,7 +14,7 @@ const links = [
   { name: "Aso Ebi", href: "#asoebi" },
   { name: "Gift", href: "#registry" },
   { name: "FAQ", href: "#faq" },
-  { name: "RSVP", href: "#rsvp=new" },
+  { name: "RSVP", href: "#rsvp" },
 ];
 
 export default function Navigation() {
@@ -37,7 +37,12 @@ export default function Navigation() {
   const nav = (href: string) => {
     setOpen(false);
     setTimeout(() => {
-      document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+      if (href === "#rsvp=new") {
+        window.location.hash = "rsvp=new";
+        document.querySelector("#rsvp")?.scrollIntoView({ behavior: "smooth" });
+      } else {
+        document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+      }
     }, 50);
   };
 
