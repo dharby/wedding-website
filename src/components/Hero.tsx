@@ -18,7 +18,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative min-h-[92dvh] flex items-center justify-center overflow-hidden bg-cream">
+    <section className="relative min-h-[92dvh] flex items-center justify-center overflow-hidden bg-cream pt-14 md:pt-0">
       {/* Botanical corners */}
 <div className="absolute inset-0 pointer-events-none">
         <svg className="absolute top-0 left-0 w-48 h-48 md:w-72 md:h-72 opacity-[0.06]" viewBox="0 0 200 200" fill="none">
