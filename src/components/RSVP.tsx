@@ -52,6 +52,7 @@ export default function RSVP() {
   const [error, setError] = useState("");
   const [searching, setSearching] = useState(false);
   const [isExistingRsvp, setIsExistingRsvp] = useState(false);
+  const [categoryConfirming, setCategoryConfirming] = useState<RSVPCategory | null>(null);
 
   const searchGuests = async () => {
     if (searchName.trim().length < 2) {
@@ -322,7 +323,7 @@ export default function RSVP() {
                 )}
                 <button
                   type="button"
-                  onClick={() => { setStep("search"); setSelectedGuest(null); setIsNewGuest(false); setSearchResults([]); setForm((p) => ({ ...p, category: "" })); }}
+                  onClick={() => { setStep("search"); setSelectedGuest(null); setIsNewGuest(false); setSearchResults([]); setForm((p) => ({ ...p, category: "" })); setCategoryConfirming(null); }}
                   className="mt-2 text-[0.7rem] text-gold/70 font-sans underline hover:text-gold"
                 >
                   Not you? Search again
@@ -345,7 +346,7 @@ export default function RSVP() {
                       <button
                         key={cat.value}
                         type="button"
-                        onClick={() => update("category", cat.value)}
+                        onClick={() => setCategoryConfirming(cat.value)}
                         className={`w-full p-3 rounded-[2px] text-left border transition-all duration-300 ${
                           form.category === cat.value
                             ? "bg-emerald text-cream border-gold/40"
@@ -449,6 +450,65 @@ export default function RSVP() {
               </form>
             </motion.div>
           )}
+
+          {/* Category Confirmation Overlay */}
+          <AnimatePresence>
+            {categoryConfirming && (
+              <motion.div
+                key="category-confirm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-5"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  className="bg-white rounded-[4px] border border-sage-border/40 shadow-xl max-w-sm w-full p-6 text-center"
+                >
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gold/10 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                  </div>
+                  <p className="text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.15em] text-ink-muted/60 font-sans mb-2">
+                    Confirm Your Category
+                  </p>
+                  <p className="text-[1rem] sm:text-[1.1rem] font-serif text-emerald font-medium mb-1">
+                    {RSVP_CATEGORIES.find((c) => c.value === categoryConfirming)?.label}
+                  </p>
+                  <p className="text-[0.75rem] font-sans text-ink-muted/70 mb-5">
+                    {RSVP_CATEGORIES.find((c) => c.value === categoryConfirming)?.detail}
+                  </p>
+                  <p className="text-[0.85rem] font-sans text-ink-soft mb-6 leading-relaxed">
+                    Are you sure you want to register under <strong className="text-emerald">{RSVP_CATEGORIES.find((c) => c.value === categoryConfirming)?.label}</strong>?
+                  </p>
+                  <div className="flex flex-col gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        update("category", categoryConfirming);
+                        setCategoryConfirming(null);
+                      }}
+                      className="w-full h-11 bg-emerald text-cream text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans font-medium border border-gold/30 rounded-[3px] transition-all duration-300 hover:bg-emerald-mid hover:border-gold/50"
+                    >
+                      Yes, I&apos;m Sure
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryConfirming(null)}
+                      className="w-full h-11 bg-white text-ink-soft text-[0.75rem] sm:text-[0.8rem] uppercase tracking-[0.18em] font-sans font-medium border border-sage-border/60 rounded-[3px] transition-all duration-300 hover:border-emerald-soft/40"
+                    >
+                      Cancel, Let Me Change
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* STEP 3: Result */}
           {step === "result" && result && (
@@ -627,7 +687,7 @@ export default function RSVP() {
               </p>
               <button
                 type="button"
-                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setIsNewGuest(false); setIsExistingRsvp(false); setResult(null); setForm({ name: "", contact: "", attending: "", category: "", notes: "" }); }}
+                onClick={() => { setStep("search"); setSearchName(""); setSearchResults([]); setSelectedGuest(null); setIsNewGuest(false); setIsExistingRsvp(false); setResult(null); setForm({ name: "", contact: "", attending: "", category: "", notes: "" }); setCategoryConfirming(null); }}
                 className="text-[0.75rem] text-gold/70 font-sans underline hover:text-gold"
               >
                 RSVP for another guest
